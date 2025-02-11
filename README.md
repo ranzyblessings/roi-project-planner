@@ -64,7 +64,11 @@ To run the project locally using Docker:
     ```
 
 2. **Start the Backend (API) Core and Its Dependencies:**
-    ```bash
+    - ***Note:** Initial application startup may fail with "Invalid keyspace roi_project_planner". On the very first
+      run (when Docker images are not cached), you might encounter this error due to a timing issue: the application
+      connects before schema initialization completes. Subsequent runs will not have this problem. Simply re-run the
+      application.*
+   ```bash
     ./gradlew clean bootRun
     ```
 
