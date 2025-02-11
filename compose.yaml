@@ -1,0 +1,82 @@
+services:
+
+  kafka:
+    image: 'apache/kafka:3.9.0'
+    container_name: 'kafka'
+    ports:
+      - '9092:9092'
+    environment:
+      # KRaft mode configuration
+      KAFKA_NODE_ID: '1'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      # Topic configuration
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: '1'
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: '1'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: '0'
+      # Log directory
+      KAFKA_LOG_DIRS: '/var/lib/kafka/data'
+    volumes:
+      - kafka-data-volume:/var/lib/kafka/data
+    networks:
+      - roi-project-planner-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "0.0.0.0:9092", "--list" ]
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      timeout: 10s
+
+  cassandra:
+    image: 'cassandra:5.0.3'
+    container_name: 'cassandra'
+    environment:
+      - 'CASSANDRA_DC=dc1'
+      - 'CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch'
+      - 'CASSANDRA_CLUSTER_NAME=dev'
+    ports:
+      - '9042:9042'
+    volumes:
+      - ./cassandra-init-scripts:/docker-entrypoint-initdb.d
+      - cassandra-data-volume:/var/lib/cassandra
+    networks:
+      - roi-project-planner-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "describe keyspaces;" ]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+  redis:
+    image: 'redis:7.4.2'
+    container_name: 'redis'
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+    volumes:
+      - redis-data-volume:/data
+    networks:
+      - roi-project-planner-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "secret", "PING" ]
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      timeout: 10s
+
+volumes:
+  kafka-data-volume:
+  cassandra-data-volume:
+  redis-data-volume:
+
+networks:
+  roi-project-planner-network:

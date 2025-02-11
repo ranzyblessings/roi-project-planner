@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: roi-project-planner
+
+  cassandra:
+    schema-action: create_if_not_exists
+    keyspace-name: roi_project_planner
+    contact-points: localhost:9042
+    local-datacenter: dc1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.data.cassandra: INFO
