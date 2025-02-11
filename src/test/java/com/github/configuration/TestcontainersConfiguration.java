@@ -6,7 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.CassandraContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -16,13 +19,26 @@ import org.testcontainers.utility.DockerImageName;
 @Import(CassandraConfiguration.class)
 public abstract class TestcontainersConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(TestcontainersConfiguration.class.getName());
+    private static final int REDIS_PORT = 6379;
 
     @Container
     @ServiceConnection
-    public static final CassandraContainer<?> CASSANDRA_CONTAINER =
+    private static final CassandraContainer<?> CASSANDRA_CONTAINER =
             new CassandraContainer<>(DockerImageName.parse("cassandra:5.0.3"))
                     .waitingFor(Wait.forListeningPort())
                     .withExposedPorts(9042);
+
+    @Container
+    private static final GenericContainer<?> REDIS_CONTAINER =
+            new GenericContainer<>(DockerImageName.parse("redis:7.4.2"))
+                    .waitingFor(Wait.forListeningPort())
+                    .withExposedPorts(REDIS_PORT);
+
+    @DynamicPropertySource
+    static void dynamicPropertySource(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT));
+    }
 
     @BeforeAll
     static void beforeAll() {

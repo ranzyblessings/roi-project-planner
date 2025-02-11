@@ -7,6 +7,12 @@ spring:
     keyspace-name: roi_project_planner
     contact-points: localhost:9042
     local-datacenter: dc1
+    consistency-level: ONE # For dev
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 management:
   endpoints:
