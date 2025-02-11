@@ -86,13 +86,64 @@ To run the project locally using Docker:
 
 ## API Usage
 
-_The API usage commands will be available soon._
+_**Please note**: For proper API usage, we are still considering whether to use OpenAPI or Spring REST Docs. Your
+contribution is welcome._
+
+### Projects
+
+1. To create **one** or more projects, send a **POST** request:
+
+    ```bash
+    curl -X POST http://localhost:8080/api/v1/projects \
+         -H "Content-Type: application/json" \
+         -d '[
+               {
+                 "name": "Project 1",
+                 "requiredCapital": 100.00,
+                 "profit": 500.00
+               },
+               {
+                 "name": "Project 2",
+                 "requiredCapital": 200.00,
+                 "profit": 800.00
+               }
+             ]'
+    ```
 
 ---
 
 ## Observability Setup for Local Development
 
-_(Setup instructions will be available soon.)_
+1. **Start Observability Services**
+    ```bash
+    docker compose -f observability/compose.yaml up -d
+    ```
+
+### Log Monitoring
+
+1. **Access Grafana and configure Loki once the services are running**
+    - Verify that the services are both **running** and **healthy** by using `docker ps`
+    - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
+    - Navigate to **Data Sources**, click **"Add data source"** then Select **Loki**.
+    - Set the **URL** to `http://loki:3100` (thanks to Docker DNS), then click **"Save & Test"** to verify connectivity.
+
+2. **Create a Log Dashboard**
+    - Click the **"+"** in the top right, select **"New Dashboard"**, then click **"Add Visualization"**.
+    - Choose **Loki** as the data source.
+    - Use **Label Filters** to refine logs (e.g., service:roi-project-planner).
+    - Enable **Table View** to see structured log entries.
+
+3. **LogQL Queries for Analysis**
+    - **Calculate the rate of successful requests (status code 201) over the last 5 minutes:**
+       ```logql
+       rate({job="roi-project-planner-logs"} |~ "statusCode=201" | json [5m])
+       ```
+    - **Count the number of error logs over the last 30 minutes.**
+      ```logql
+      count_over_time({service="roi-project-planner", level="ERROR"} | json [30m])
+      ```
+
+    - Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
 
 ---
 

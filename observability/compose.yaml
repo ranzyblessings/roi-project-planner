@@ -1,0 +1,55 @@
+services:
+
+  loki:
+    image: 'grafana/loki:3.1.2'
+    container_name: 'loki'
+    ports:
+      - '3100:3100'
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3100/metrics" ]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 5s
+
+  promtail:
+    image: 'grafana/promtail:3.1.2'
+    container_name: 'promtail'
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - ../logs/application.log:/var/log/application.log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9080/metrics" ]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 5s
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  grafana:
+    image: 'grafana/grafana:11.5.1'
+    container_name: 'grafana'
+    ports:
+      - '3000:3000'
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/api/health" ]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 5s
+
+networks:
+  observability-network:

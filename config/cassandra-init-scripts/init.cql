@@ -1,4 +1,4 @@
-CREATE KEYSPACE IF NOT EXISTS roi_project_planner WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};
+CREATE KEYSPACE IF NOT EXISTS roi_project_planner WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
 USE roi_project_planner;
 
