@@ -44,7 +44,6 @@ services:
     ports:
       - '9042:9042'
     volumes:
-      - ./cassandra-init-scripts:/docker-entrypoint-initdb.d
       - cassandra-data-volume:/var/lib/cassandra
     networks:
       - roi-project-planner-network
@@ -55,6 +54,28 @@ services:
       retries: 5
       start_period: 10s
       timeout: 10s
+
+  cassandra-init:
+    image: 'python:3.9-slim-buster'
+    container_name: 'cassandra-init'
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    volumes:
+      - ./config/cassandra-init-scripts:/scripts
+    networks:
+      - roi-project-planner-network
+    entrypoint:
+      - sh
+      - -c
+      - |
+        apt-get update && apt-get install -y netcat-openbsd;
+        pip install cassandra-driver;
+        while ! nc -zv cassandra 9042; do
+          sleep 1;
+        done;
+        python3 /scripts/init_cassandra.py
+    restart: "no"
 
   redis:
     image: 'redis:7.4.2'
