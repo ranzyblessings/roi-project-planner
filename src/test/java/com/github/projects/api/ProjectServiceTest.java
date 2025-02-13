@@ -31,7 +31,7 @@ class ProjectServiceTest {
     private ProjectRepository projectRepository;
 
     @InjectMocks
-    private ProjectService projectService;
+    private ProjectService underTest;
 
     private ProjectEntity projectEntity1;
     private ProjectEntity projectEntity2;
@@ -51,7 +51,7 @@ class ProjectServiceTest {
         when(projectRepository.saveAll(projects)).thenReturn(Flux.just(projectEntity1, projectEntity2));
 
         // When
-        Flux<ProjectDTO> result = projectService.addAll(projects);
+        Flux<ProjectDTO> result = underTest.addAll(projects);
 
         // Then
         StepVerifier.create(result)
@@ -68,7 +68,7 @@ class ProjectServiceTest {
         Iterable<ProjectEntity> emptyProjects = Collections.emptyList();
 
         // When
-        Flux<ProjectDTO> result = projectService.addAll(emptyProjects);
+        Flux<ProjectDTO> result = underTest.addAll(emptyProjects);
 
         // Then
         StepVerifier.create(result)
@@ -83,7 +83,7 @@ class ProjectServiceTest {
         Iterable<ProjectEntity> nullProjects = null;
 
         // When
-        Flux<ProjectDTO> result = projectService.addAll(nullProjects);
+        Flux<ProjectDTO> result = underTest.addAll(nullProjects);
 
         // Then
         StepVerifier.create(result)
@@ -100,7 +100,7 @@ class ProjectServiceTest {
         when(projectRepository.findById(projectId)).thenReturn(Mono.just(projectEntity1));
 
         // When
-        Mono<ProjectDTO> result = projectService.findById(projectId);
+        Mono<ProjectDTO> result = underTest.findById(projectId);
 
         // Then
         StepVerifier.create(result)
@@ -118,7 +118,7 @@ class ProjectServiceTest {
         when(projectRepository.findById(projectId)).thenReturn(Mono.empty());
 
         // When
-        Mono<ProjectDTO> result = projectService.findById(projectId);
+        Mono<ProjectDTO> result = underTest.findById(projectId);
 
         // Then
         StepVerifier.create(result)
@@ -135,7 +135,7 @@ class ProjectServiceTest {
         when(projectRepository.findAll()).thenReturn(Flux.just(projectEntity1, projectEntity2));
 
         // When
-        Flux<ProjectDTO> result = projectService.findAll();
+        Flux<ProjectDTO> result = underTest.findAll();
 
         // Then
         StepVerifier.create(result)

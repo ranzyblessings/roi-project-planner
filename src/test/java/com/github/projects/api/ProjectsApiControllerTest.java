@@ -3,7 +3,6 @@ package com.github.projects.api;
 import com.github.projects.model.AuditMetadata;
 import com.github.projects.model.ProjectDTO;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -21,9 +20,6 @@ class ProjectsApiControllerTest {
 
     @MockitoBean
     private ProjectService projectService;
-
-    @InjectMocks
-    private ProjectsApiController projectsApiController;
 
     private final WebTestClient webTestClient;
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
+    <!-- Configurable via the LOG_PATH env variable. Defaults to the 'logs' directory in the root project -->
     <springProperty scope="context" name="LOG_PATH" source="LOG_PATH" defaultValue="logs"/>
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
