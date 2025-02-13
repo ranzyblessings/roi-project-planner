@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -13,11 +15,13 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 @Import(CassandraConfiguration.class)
+@EnableAutoConfiguration(exclude = {
+        KafkaAutoConfiguration.class
+})
 public abstract class TestcontainersConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(TestcontainersConfiguration.class.getName());
     private static final int REDIS_PORT = 6379;
@@ -30,12 +34,6 @@ public abstract class TestcontainersConfiguration {
                     .withExposedPorts(9042);
 
     @Container
-    @ServiceConnection
-    private static final KafkaContainer KAFKA_CONTAINER =
-            new KafkaContainer(DockerImageName.parse("apache/kafka:3.9.0"))
-                    .waitingFor(Wait.forListeningPort());
-
-    @Container
     private static final GenericContainer<?> REDIS_CONTAINER =
             new GenericContainer<>(DockerImageName.parse("redis:7.4.2"))
                     .waitingFor(Wait.forListeningPort())
@@ -43,8 +41,6 @@ public abstract class TestcontainersConfiguration {
 
     @DynamicPropertySource
     static void dynamicPropertySource(DynamicPropertyRegistry registry) {
-        registry.add("spring.cloud.stream.kafka.binder.brokers", KAFKA_CONTAINER::getHost);
-
         registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
         registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT));
     }
