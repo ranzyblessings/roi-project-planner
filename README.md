@@ -55,25 +55,19 @@ Ensure the following tools are installed:
 
 ### Local Setup with Docker
 
-To run the project locally using Docker:
+To run the project locally using Docker, follow these steps:
 
 1. **Clone the Repository:**
     ```bash
     git clone https://github.com/ranzyblessings/roi-project-planner.git
     cd roi-project-planner
     ```
-
-2. **Start the Backend (API) Core and Its Dependencies:**
-    - ***Note:** Initial application startup may fail with "Invalid keyspace roi_project_planner". On the very first
-      run (when Docker images are not cached), you might encounter this error due to a timing issue: the application
-      connects before schema initialization completes. Subsequent runs will not have this problem. Simply re-run the
-      application.*
+2. **Start Dependencies with Docker Compose:**
    ```bash
-    ./gradlew clean bootRun
-    ```
+      docker compose up -d
+   ```
 
-   **Note:** This command automatically runs the `compose.yaml`, offering an alternative to
-   `docker compose up --build -d`. It will start the following services:
+   **Note:** This command will start the following services:
 
     - **Kafka:** Handles event streaming for distributed communication, enabling real-time analytics on Capital
       Maximization Query events with low-latency, high-throughput processing.
@@ -82,11 +76,16 @@ To run the project locally using Docker:
     - **Redis:** A high-performance, in-memory data store that functions as a caching layer, speeding up project
       lookups and optimizing overall system performance.
 
+3. **Start the Backend Core API:**
+   ```bash
+    ./gradlew clean bootRun
+    ```
+
 ---
 
 ## API Usage
 
-_**Please note**: For proper API usage, we are still considering whether to use OpenAPI or Spring REST Docs. Your
+_**Note**: For proper API usage, we are still considering whether to use OpenAPI or Spring REST Docs. Your
 contribution is welcome._
 
 ### Projects
@@ -99,16 +98,40 @@ contribution is welcome._
          -d '[
                {
                  "name": "Project 1",
-                 "requiredCapital": 100.00,
-                 "profit": 500.00
+                 "requiredCapital": 0.00,
+                 "profit": 100.00
                },
                {
                  "name": "Project 2",
-                 "requiredCapital": 200.00,
-                 "profit": 800.00
+                 "requiredCapital": 100.00,
+                 "profit": 200.00
+               },
+               {
+                 "name": "Project 3",
+                 "requiredCapital": 100.00,
+                 "profit": 300.00
                }
              ]'
     ```
+
+### Project Capital Maximization
+
+1. To **maximize capital** by selecting up to _k_ distinct projects from a pool of available projects, send a **POST**
+   request:
+
+    ```bash
+    curl -X POST http://localhost:8080/api/v1/capital/maximization/query \
+         -H "Content-Type: application/json" \
+         -d '{
+              "maxProjects":2,
+              "initialCapital":"100.00" 
+            }'
+    ```
+
+For now, view the selected projects and capital maximization details in your console after receiving the Kafka events.
+
+_In the future, advanced analytics and graphical representations will be added, with support for custom views that
+consumers can subscribe to for tailored visualizations._
 
 ---
 

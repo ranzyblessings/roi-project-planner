@@ -128,4 +128,21 @@ class ProjectServiceTest {
 
         Mockito.verify(projectRepository).findById(projectId);
     }
+
+    @Test
+    void testFindAll_success() {
+        // Given
+        when(projectRepository.findAll()).thenReturn(Flux.just(projectEntity1, projectEntity2));
+
+        // When
+        Flux<ProjectDTO> result = projectService.findAll();
+
+        // Then
+        StepVerifier.create(result)
+                .expectNextMatches(project -> project.id().equals(projectEntity1.id()) &&
+                        project.name().equals(projectEntity1.name()))
+                .expectNextMatches(project -> project.id().equals(projectEntity2.id()) &&
+                        project.name().equals(projectEntity2.name()))
+                .verifyComplete();
+    }
 }
