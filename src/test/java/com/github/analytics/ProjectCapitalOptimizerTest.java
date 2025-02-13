@@ -1,5 +1,8 @@
 package com.github.analytics;
 
+import com.github.analytics.api.CapitalMaximizationQuery;
+import com.github.analytics.api.ProjectCapitalOptimized;
+import com.github.analytics.api.ProjectCapitalOptimizer;
 import com.github.projects.model.AuditMetadata;
 import com.github.projects.model.ProjectDTO;
 import org.junit.jupiter.api.Test;

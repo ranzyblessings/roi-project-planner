@@ -7,12 +7,40 @@ spring:
     keyspace-name: roi_project_planner
     contact-points: localhost:9042
     local-datacenter: dc1
-    consistency-level: ONE # For dev
+    consistency-level: ONE
 
   data:
     redis:
       host: localhost
       port: 6379
+
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+          autoCreateTopics: false
+          replicationFactor: 1
+        bindings:
+          capital-maximization-query-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: capital-maximization-query-events-dlq
+      bindings:
+        capital-maximization-query-out-0:
+          destination: capital-maximization-query-events
+          producer:
+            partitionKeyExpression: headers.PARTITION_KEY
+            partitionCount: 2
+        capital-maximization-query-in-0:
+          destination: capital-maximization-query-events
+          group: capital-maximization-query
+          consumer:
+            maxAttempts: 3
+            backOffInitialInterval: 500
+            backOffMaxInterval: 1000
+            backOffMultiplier: 2.0
+            partitioned: true
 
 management:
   endpoints:
@@ -29,4 +57,6 @@ management:
 
 logging:
   level:
-    org.springframework.data.cassandra: INFO
+    org.springframework.data.cassandra: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.web: DEBUG

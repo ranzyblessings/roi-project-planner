@@ -7,7 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
- * Request DTO for creating a new project.
+ * Data transfer object (DTO) for creating a new project.
+ * Includes the project name, required capital to start the project, and the expected profit.
  */
 public record CreateProjectRequest(
         @NotBlank(message = "Project name cannot be blank")

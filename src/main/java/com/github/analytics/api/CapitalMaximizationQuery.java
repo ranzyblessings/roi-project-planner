@@ -1,4 +1,4 @@
-package com.github.analytics;
+package com.github.analytics.api;
 
 import com.github.projects.model.ProjectDTO;
 

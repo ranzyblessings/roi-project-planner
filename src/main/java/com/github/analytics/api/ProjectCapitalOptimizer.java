@@ -1,8 +1,9 @@
-package com.github.analytics;
+package com.github.analytics.api;
 
 import com.github.projects.model.ProjectDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -16,7 +17,8 @@ import java.util.PriorityQueue;
  * Optimizes project selection for maximum final capital.
  * Employs a greedy algorithm, iteratively selecting the most profitable, affordable project.
  */
-public final class ProjectCapitalOptimizer {
+@Component
+public class ProjectCapitalOptimizer {
     private static final Logger logger = LoggerFactory.getLogger(ProjectCapitalOptimizer.class);
 
     /**
