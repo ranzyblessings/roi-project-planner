@@ -1,0 +1,45 @@
+local.file_match "roi_project_planner" {
+	path_targets = [{
+		__address__ = "localhost",
+		__path__    = "/var/log/application.log",
+		job         = "roi-project-planner-logs",
+	}]
+}
+
+loki.process "roi_project_planner" {
+	forward_to = [loki.write.default.receiver]
+
+	stage.json {
+		expressions = {
+			level     = "level",
+			message   = "message",
+			service   = "service",
+			timestamp = "'@timestamp'",
+		}
+	}
+
+	stage.timestamp {
+		source = "timestamp"
+		format = "RFC3339Nano"
+	}
+
+	stage.labels {
+		values = {
+			level   = null,
+			service = null,
+		}
+	}
+}
+
+loki.source.file "roi_project_planner" {
+	targets               = local.file_match.roi_project_planner.targets
+	forward_to            = [loki.process.roi_project_planner.receiver]
+	legacy_positions_file = "/tmp/positions.yaml"
+}
+
+loki.write "default" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+	external_labels = {}
+}

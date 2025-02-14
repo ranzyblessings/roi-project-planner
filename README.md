@@ -37,7 +37,7 @@ cloud-native patterns including reactive programming, fault tolerance, and event
 - **Observability:** Equipped with Prometheus, Grafana, Jaeger, and Argo CD for metrics, monitoring, distributed
   tracing, and GitOps.
 - **Logging Strategy:** Employs SLF4J with Logback and logstash-logback-encoder to produce structured JSON logs. Logs
-  are collected by Promtail, sent to Loki, and visualized in Grafana for comprehensive observability.
+  are collected by Alloy, sent to Loki, and visualized in Grafana for comprehensive observability.
 
 ---
 
