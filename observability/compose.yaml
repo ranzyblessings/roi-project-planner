@@ -29,6 +29,23 @@ services:
       loki:
         condition: service_healthy
 
+  prometheus:
+    image: 'prom/prometheus:v3.1.0'
+    container_name: 'prometheus'
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prom-config.yaml:/etc/prometheus/prometheus.yml
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/metrics" ]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 5s
+
   grafana:
     image: 'grafana/grafana:11.5.1'
     container_name: 'grafana'
