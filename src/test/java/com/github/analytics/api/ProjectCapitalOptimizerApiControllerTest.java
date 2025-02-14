@@ -3,7 +3,6 @@ package com.github.analytics.api;
 import com.github.analytics.event.CapitalMaximizationQueryEvent;
 import com.github.analytics.event.ProjectCapitalOptimizerEventPublisher;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.http.HttpStatus;
@@ -24,9 +23,6 @@ class ProjectCapitalOptimizerApiControllerTest {
     @MockitoBean
     private ProjectCapitalOptimizerEventPublisher projectCapitalOptimizerEventPublisher;
 
-    @InjectMocks
-    private ProjectCapitalOptimizerApiController underTest;
-
     private final WebTestClient webTestClient;
 
     @Autowired
@@ -38,9 +34,7 @@ class ProjectCapitalOptimizerApiControllerTest {
     void testPublishCapitalMaximizationQueryEvent_successful() {
         // Given
         var request = new ProjectCapitalOptimizerRequest(2, new BigDecimal("100.00"));
-        var event = new CapitalMaximizationQueryEvent(2, new BigDecimal("100.00"));
 
-        // Mock the behavior of the publisher to return a successful event publishing
         when(projectCapitalOptimizerEventPublisher.publishEvent(any(CapitalMaximizationQueryEvent.class)))
                 .thenReturn(Mono.just(true)); // Simulate successful event publishing
 
@@ -56,6 +50,7 @@ class ProjectCapitalOptimizerApiControllerTest {
                 .jsonPath("$.data").isEqualTo("Capital maximization query event accepted for processing.");
 
         // Verify that the event was published
+        var event = new CapitalMaximizationQueryEvent(2, new BigDecimal("100.00"));
         verify(projectCapitalOptimizerEventPublisher, times(1)).publishEvent(eq(event));
     }
 
@@ -63,9 +58,7 @@ class ProjectCapitalOptimizerApiControllerTest {
     void testPublishCapitalMaximizationQueryEvent_failed() {
         // Given
         var request = new ProjectCapitalOptimizerRequest(2, new BigDecimal("100.00"));
-        var event = new CapitalMaximizationQueryEvent(2, new BigDecimal("100.00"));
 
-        // Mock the behavior of the publisher to return an error (simulate failure)
         when(projectCapitalOptimizerEventPublisher.publishEvent(any(CapitalMaximizationQueryEvent.class)))
                 .thenReturn(Mono.error(new RuntimeException("Error occurred while publishing capital maximization query event.")));
 
@@ -81,6 +74,7 @@ class ProjectCapitalOptimizerApiControllerTest {
                 .jsonPath("$.message").isEqualTo("Error occurred while publishing capital maximization query event.");
 
         // Verify that the event publishing attempt was made
+        var event = new CapitalMaximizationQueryEvent(2, new BigDecimal("100.00"));
         verify(projectCapitalOptimizerEventPublisher, times(1)).publishEvent(eq(event));
     }
 }

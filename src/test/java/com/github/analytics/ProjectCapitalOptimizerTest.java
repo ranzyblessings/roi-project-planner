@@ -20,7 +20,7 @@ class ProjectCapitalOptimizerTest {
 
     @Test
     void shouldReturnError_whenQueryIsNull() {
-        // Given: A null query passed to maximizeCapital function
+        // Given: A null query passed to maximizeCapital method
         CapitalMaximizationQuery query = null;
 
         // When: maximizeCapital is called with the null query

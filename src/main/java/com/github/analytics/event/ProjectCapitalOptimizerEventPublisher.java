@@ -40,7 +40,7 @@ public class ProjectCapitalOptimizerEventPublisher {
                             .setHeader(PARTITION_KEY_HEADER, UUID.randomUUID().toString()) // Set partition key for round-robin or even distribution
                             .build();
 
-                    // Send the message to the stream bridge and log headers
+                    // Send the message and log headers
                     boolean sent = streamBridge.send(CAPITAL_MAXIMIZATION_QUERY_TOPIC_OUT_BINDING, message);
                     message.getHeaders().forEach((key, value) -> logger.info("Message header: {} = {}", key, value));
                     logger.info("Capital maximization query event sent to topic: {}", sent);
