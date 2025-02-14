@@ -7,7 +7,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -24,15 +23,14 @@ public class ProjectService {
     }
 
     /**
-     * Saves a collection of projects to the repository asynchronously.
-     * Ensures no null or empty elements are passed and offloads blocking operations to a bounded elastic thread pool.
+     * Asynchronously saves a collection of projects to the repository,
+     * and ensuring that no null or empty elements are included.
      */
     public Flux<ProjectDTO> addAll(Iterable<ProjectEntity> projects) {
         return Mono.fromCallable(() -> {
                     requireNonNullAndNoNullElements((Collection<ProjectEntity>) projects, () -> "Projects cannot be null or empty");
                     return projects;
                 })
-                .subscribeOn(Schedulers.boundedElastic()) // Offload to a bounded elastic thread pool for blocking operations
                 .flatMapMany(projectRepository::saveAll)
                 .map(ProjectDTO::fromEntity);
     }
