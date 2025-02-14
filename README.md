@@ -145,7 +145,6 @@ consumers can subscribe to for tailored visualizations._
 ### Log Monitoring
 
 1. **Access Grafana and configure Loki once the services are running**
-    - Verify that the services are both **running** and **healthy** by using `docker ps`
     - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
     - Navigate to **Data Sources**, click **"Add data source"** then Select **Loki**.
     - Set the **URL** to `http://loki:3100` (thanks to Docker DNS), then click **"Save & Test"** to verify connectivity.
@@ -167,6 +166,31 @@ consumers can subscribe to for tailored visualizations._
       ```
 
     - Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
+
+### Metrics Monitoring
+
+_**Note:** On Mac or Windows, set the `targets` in **observability/prom-config.yaml**
+to: `- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP address._
+
+1. **Access Grafana and configure Prometheus once the services are running**
+    - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
+    - Navigate to **Data Sources**, click **"Add data source"** then Select **Prometheus**.
+    - Set the **URL** to `http://prometheus:9090` (thanks to Docker DNS), then click **"Save & Test"** to verify
+      connectivity.
+
+2. **Create a Log Dashboard**
+    - Click the **"+"** in the top right, select **"New Dashboard"**, then click **"Add Visualization"**.
+    - Choose **Prometheus** as the data source.
+    - Use **Label Filters** to refine logs (e.g., job:roi-project-planner-metrics).
+
+3. **PromQL Queries for Analysis**
+    - **HTTP Response Status Code Counts (e.g., 2xx, 4xx, 5xx):**
+       ```promql
+       http_server_requests_seconds_count{status="200"}
+       ```
+
+    - Refer to the [PromQL documentation](https://prometheus.io/docs/prometheus/latest/querying/basics) for advanced
+      queries.
 
 ---
 
