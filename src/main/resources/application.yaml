@@ -57,6 +57,9 @@ management:
       enabled: true
 
 logging:
+  file:
+    path: logs
+    name: application.log
   level:
     org.springframework.data.cassandra: DEBUG
     org.springframework.kafka: INFO
