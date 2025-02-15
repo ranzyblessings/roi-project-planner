@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
-    <!-- Configurable via the LOG_PATH env variable. Defaults to the 'logs' directory in the root project -->
+    <!-- Define the log directory (can be overridden with the LOG_PATH environment variable) -->
     <springProperty scope="context" name="LOG_PATH" source="LOG_PATH" defaultValue="logs"/>
 
-    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- Console Appender: Outputs JSON formatted logs to the console -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeCallerData>true</includeCallerData>
             <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</timestampPattern>
@@ -20,9 +21,11 @@
         </encoder>
     </appender>
 
-    <appender name="FileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- File Appender: Writes JSON formatted logs to a file with rolling policies -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- Log files will roll over daily and when exceeding 100MB -->
             <fileNamePattern>${LOG_PATH}/application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>7</maxHistory>
@@ -43,39 +46,24 @@
         </encoder>
     </appender>
 
-    <appender name="AsyncConsole" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="Console"/>
+    <!-- Asynchronous wrapper for the file appender -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
         <queueSize>512</queueSize>
         <discardingThreshold>0</discardingThreshold>
     </appender>
 
-    <appender name="AsyncFileAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="FileAppender"/>
+    <!-- Asynchronous wrapper for the console appender -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CONSOLE"/>
         <queueSize>512</queueSize>
         <discardingThreshold>0</discardingThreshold>
     </appender>
 
-    <appender name="FallbackConsole" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%-5level [%thread]: %message%n</pattern>
-        </encoder>
-    </appender>
-
-    <root level="DEBUG">
-        <appender-ref ref="AsyncFileAppender"/>
-    </root>
-
-    <logger name="com.github" level="DEBUG" additivity="false">
-        <appender-ref ref="AsyncFileAppender"/>
-    </logger>
-
+    <!-- Root logger: logs INFO and above to both asynchronous appenders -->
     <root level="INFO">
-        <appender-ref ref="AsyncConsole"/>
-        <appender-ref ref="FallbackConsole"/>
+        <appender-ref ref="ASYNC_CONSOLE"/>
+        <appender-ref ref="ASYNC_FILE"/>
     </root>
-
-    <logger name="com.github" level="INFO" additivity="false">
-        <appender-ref ref="AsyncConsole"/>
-    </logger>
 
 </configuration>
