@@ -9,7 +9,7 @@ import static com.github.projects.model.Validators.*;
 
 /**
  * Immutable record representing a query to maximize capital.
- * Includes the list of available projects, the maximum number of projects to complete, and the initial capital.
+ * Encapsulates available projects, the maximum number of selections, and initial capital for optimization.
  */
 public record CapitalMaximizationQuery(
         List<ProjectDTO> availableProjects,
@@ -17,8 +17,8 @@ public record CapitalMaximizationQuery(
         BigDecimal initialCapital) {
 
     public CapitalMaximizationQuery {
-        requireNonNullAndNoNullElements(availableProjects, () -> "Available projects must not be null nor contain null elements");
-        requireNonNegative(maxProjects, () -> "Max projects must be non-negative");
-        requireNonNullAndNonNegative(initialCapital, () -> "Initial capital must not be null and must be non-negative");
+        requireNonNullAndNoNullElements(availableProjects, () -> "Available projects list cannot be null or contain null elements.");
+        requireNonNegative(maxProjects, () -> "Maximum projects must be zero or greater.");
+        requireNonNullAndNonNegative(initialCapital, () -> "Initial capital cannot be null or negative.");
     }
 }

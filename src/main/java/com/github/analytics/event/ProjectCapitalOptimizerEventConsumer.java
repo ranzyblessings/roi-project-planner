@@ -1,5 +1,6 @@
 package com.github.analytics.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.analytics.api.CapitalMaximizationQuery;
 import com.github.analytics.api.ProjectCapitalOptimized;
@@ -12,70 +13,102 @@ import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
-import static com.github.configuration.KafkaConfiguration.CAPITAL_MAXIMIZATION_QUERY_TOPIC;
-import static com.github.projects.model.Validators.requireNonNullOrBlank;
+import java.time.Duration;
 
 /**
  * Kafka consumer that processes Capital Maximization Query events from the specified Kafka partitions.
- * Currently, logs the events for development purposes.
+ * Processes capital maximization events and optimizes project selection. Currently, logs events for debugging.
  */
 @Component
 public class ProjectCapitalOptimizerEventConsumer {
     private static final Logger logger = LoggerFactory.getLogger(ProjectCapitalOptimizerEventConsumer.class);
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
-    private final JsonMapper jsonMapper;
     private final ProjectService projectService;
     private final ProjectCapitalOptimizer projectCapitalOptimizer;
 
     public ProjectCapitalOptimizerEventConsumer(
             ProjectService projectService,
             ProjectCapitalOptimizer projectCapitalOptimizer) {
-        this.jsonMapper = JsonMapper.builder().build();
         this.projectService = projectService;
         this.projectCapitalOptimizer = projectCapitalOptimizer;
     }
 
+    /**
+     * Kafka listener that consumes capital maximization query events from Kafka topic partitions.
+     *
+     * @param jsonEvent The JSON event as a String.
+     */
     @KafkaListener(
             topicPartitions = @TopicPartition(
-                    topic = CAPITAL_MAXIMIZATION_QUERY_TOPIC,
+                    topic = "CAPITAL_MAXIMIZATION_QUERY_TOPIC",
                     partitions = {"0", "1"}
             )
     )
-    void handleCapitalMaximizationEvent(final String jsonEvent) {
-        logger.info("Starting to process capital maximization event: {}", jsonEvent);
+    public void handleCapitalMaximizationEvent(final String jsonEvent) {
+        logger.info("Received capital maximization event: {}", jsonEvent);
 
         processCapitalMaximizationEvent(jsonEvent)
-                .subscribe(result -> logger.info("Capital maximization completed: {}", result));
+                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2))) // Retry transient failures
+                .doOnError(error -> logger.error("Final failure processing event: {}", jsonEvent, error))
+                .onErrorResume(error -> Mono.empty()) // Avoid infinite Kafka retries
+                .subscribe(
+                        result -> logger.info("Processing completed. Final capital: {}, Selected projects: {}",
+                                result.finalCapital(), result.selectedProjects().size())
+                );
     }
 
+    /**
+     * Processes a capital maximization event by deserializing the JSON event, fetching available projects,
+     * and optimizing capital allocation.
+     *
+     * @param jsonEvent The JSON event payload.
+     * @return A Mono of {@link ProjectCapitalOptimized} containing the optimization result.
+     */
     public Mono<ProjectCapitalOptimized> processCapitalMaximizationEvent(final String jsonEvent) {
-        return deserializeCapitalMaximizationQueryEvent(jsonEvent)
+        return parseCapitalMaximizationJsonEvent(jsonEvent)
                 .flatMap(event -> projectService.findAll().collectList()
                         .flatMap(projects -> {
                             if (projects.isEmpty()) {
-                                throw new IllegalStateException("No projects are available for capital maximization.");
+                                logger.warn("No projects available for capital maximization.");
+                                return Mono.error(new IllegalStateException("No projects available for capital maximization."));
                             }
 
-                            logger.info("Projects count: {}, maxProjects: {}, initialCapital: {}",
-                                    projects.size(), event.maxProjects(), event.initialCapital());
+                            logger.info("Processing event: maxProjects={}, initialCapital={}, availableProjects={}",
+                                    event.maxProjects(), event.initialCapital(), projects.size());
 
                             var query = new CapitalMaximizationQuery(projects, event.maxProjects(), event.initialCapital());
                             return projectCapitalOptimizer.maximizeCapital(query);
                         }))
-                .doOnError(error -> logger.error("Error occurred while processing capital maximization event", error));
+                .doOnError(error -> logger.error("Error during capital maximization process", error));
     }
 
-    private Mono<CapitalMaximizationQueryEvent> deserializeCapitalMaximizationQueryEvent(String jsonEvent) {
-        logger.debug("Attempting to convert JSON event to CapitalMaximizationQueryEvent: {}", jsonEvent);
+    /**
+     * Parses and deserializes the JSON event into a {@link CapitalMaximizationQueryEvent} object.
+     *
+     * @param jsonEvent The JSON event payload.
+     * @return A Mono of the deserialized {@link CapitalMaximizationQueryEvent}.
+     */
+    private Mono<CapitalMaximizationQueryEvent> parseCapitalMaximizationJsonEvent(String jsonEvent) {
+        logger.debug("Attempting to deserialize JSON event: {}", jsonEvent);
 
         return Mono.fromCallable(() -> {
-                    requireNonNullOrBlank(jsonEvent, () -> "JSON event should not be null or empty");
+                    if (jsonEvent == null || jsonEvent.trim().isEmpty()) {
+                        throw new IllegalArgumentException("JSON event should not be null or empty");
+                    }
 
-                    var event = jsonMapper.readValue(jsonEvent, CapitalMaximizationQueryEvent.class);
-                    logger.info("Successfully converted JSON event to CapitalMaximizationQueryEvent.");
-                    return event;
-                }).subscribeOn(Schedulers.boundedElastic()) // Offload to a bounded elastic thread pool for blocking operations;
-                .doOnError(error -> logger.error("Failed to convert JSON event to CapitalMaximizationQueryEvent. JSON: {}", jsonEvent, error));
+                    try {
+                        var event = JSON_MAPPER.readValue(jsonEvent, CapitalMaximizationQueryEvent.class);
+                        logger.info("Successfully deserialized event: {}", event);
+                        return event;
+                    } catch (JsonProcessingException e) {
+                        logger.error("Invalid JSON format: {} | Error: {}", jsonEvent, e.getMessage(), e);
+                        throw new IllegalArgumentException("Invalid JSON format", e);
+                    }
+                })
+                .subscribeOn(Schedulers.boundedElastic()) // Offload JSON parsing to a separate thread
+                .doOnError(error -> logger.error("Deserialization failed for JSON: {}", jsonEvent, error));
     }
 }

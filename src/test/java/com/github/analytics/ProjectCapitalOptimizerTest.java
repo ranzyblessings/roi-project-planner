@@ -30,7 +30,7 @@ class ProjectCapitalOptimizerTest {
         StepVerifier.create(resultMono)
                 .expectErrorSatisfies(error -> {
                     assertThat(error).isInstanceOf(IllegalArgumentException.class);
-                    assertThat(error).hasMessage("Capital maximization query must not be null");
+                    assertThat(error).hasMessage("Query and available projects list must not be null.");
                 })
                 .verify();
     }

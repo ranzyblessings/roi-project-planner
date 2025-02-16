@@ -13,8 +13,8 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @WebFluxTest(ProjectCapitalOptimizerApiController.class)
@@ -30,51 +30,129 @@ class ProjectCapitalOptimizerApiControllerTest {
         this.webTestClient = webTestClient;
     }
 
+    private static final String API_ENDPOINT = "/api/v1/capital/maximization/query";
+
     @Test
-    void testPublishCapitalMaximizationQueryEvent_successful() {
+    void shouldAcceptCapitalMaximizationQueryEvent_WhenRequestIsValid() {
         // Given
-        var request = new ProjectCapitalOptimizerRequest(2, new BigDecimal("100.00"));
+        var request = validRequest();
+        var expectedEvent = new CapitalMaximizationQueryEvent(request.maxProjects(), request.initialCapital());
 
         when(projectCapitalOptimizerEventPublisher.publishEvent(any(CapitalMaximizationQueryEvent.class)))
-                .thenReturn(Mono.just(true)); // Simulate successful event publishing
+                .thenReturn(Mono.empty());
 
         // When & Then
         webTestClient.post()
-                .uri("/api/v1/capital/maximization/query")
+                .uri(API_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isAccepted()  // Expect HTTP 202 ACCEPTED
+                .expectStatus().isAccepted()
                 .expectBody()
                 .jsonPath("$.statusCode").isEqualTo(HttpStatus.ACCEPTED.value())
-                .jsonPath("$.data").isEqualTo("Capital maximization query event accepted for processing.");
+                .jsonPath("$.data").isEqualTo("Capital Maximization Query event accepted for processing");
 
-        // Verify that the event was published
-        var event = new CapitalMaximizationQueryEvent(2, new BigDecimal("100.00"));
-        verify(projectCapitalOptimizerEventPublisher, times(1)).publishEvent(eq(event));
+        verify(projectCapitalOptimizerEventPublisher, times(1))
+                .publishEvent(argThat(event ->
+                        event.maxProjects() == expectedEvent.maxProjects() &&
+                                event.initialCapital().compareTo(expectedEvent.initialCapital()) == 0
+                ));
+
+        verifyNoMoreInteractions(projectCapitalOptimizerEventPublisher);
     }
 
     @Test
-    void testPublishCapitalMaximizationQueryEvent_failed() {
+    void shouldReturnInternalServerError_WhenEventPublishingFails() {
         // Given
-        var request = new ProjectCapitalOptimizerRequest(2, new BigDecimal("100.00"));
+        var request = validRequest();
 
         when(projectCapitalOptimizerEventPublisher.publishEvent(any(CapitalMaximizationQueryEvent.class)))
-                .thenReturn(Mono.error(new RuntimeException("Error occurred while publishing capital maximization query event.")));
+                .thenReturn(Mono.error(new RuntimeException("Publishing failed")));
 
         // When & Then
         webTestClient.post()
-                .uri("/api/v1/capital/maximization/query")
+                .uri(API_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().is5xxServerError()
+                .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expectBody()
                 .jsonPath("$.statusCode").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.message").isEqualTo("Error occurred while publishing capital maximization query event.");
+                .jsonPath("$.message").value(containsString("Publishing failed"));
 
-        // Verify that the event publishing attempt was made
-        var event = new CapitalMaximizationQueryEvent(2, new BigDecimal("100.00"));
-        verify(projectCapitalOptimizerEventPublisher, times(1)).publishEvent(eq(event));
+        verify(projectCapitalOptimizerEventPublisher, times(1)).publishEvent(any(CapitalMaximizationQueryEvent.class));
+        verifyNoMoreInteractions(projectCapitalOptimizerEventPublisher);
+    }
+
+    @Test
+    void shouldReturnBadRequest_WhenMaxProjectsIsNull() {
+        // Given
+        var invalidRequest = new ProjectCapitalOptimizerRequest(null, new BigDecimal("100.00"));
+
+        // When & Then
+        webTestClient.post()
+                .uri(API_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(invalidRequest)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").value(containsString("Maximum projects cannot be null"));
+    }
+
+    @Test
+    void shouldReturnBadRequest_WhenMaxProjectsIsNegative() {
+        // Given
+        var invalidRequest = new ProjectCapitalOptimizerRequest(-1, new BigDecimal("100.00"));
+
+        // When & Then
+        webTestClient.post()
+                .uri(API_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(invalidRequest)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").value(containsString("Maximum projects must be at least 1"));
+    }
+
+    @Test
+    void shouldReturnBadRequest_WhenInitialCapitalIsNull() {
+        // Given
+        var invalidRequest = new ProjectCapitalOptimizerRequest(2, null);
+
+        // When & Then
+        webTestClient.post()
+                .uri(API_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(invalidRequest)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").value(containsString("Initial capital cannot be null"));
+    }
+
+    @Test
+    void shouldReturnBadRequest_WhenInitialCapitalIsNegative() {
+        // Given
+        var invalidRequest = new ProjectCapitalOptimizerRequest(2, new BigDecimal("-10.00"));
+
+        // When & Then
+        webTestClient.post()
+                .uri(API_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(invalidRequest)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").value(containsString("Initial capital cannot be negative"));
+    }
+
+    private ProjectCapitalOptimizerRequest validRequest() {
+        return new ProjectCapitalOptimizerRequest(2, new BigDecimal("100.00"));
     }
 }

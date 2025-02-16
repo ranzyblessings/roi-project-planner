@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,7 +34,12 @@ public class ProjectsApiController {
                 .doOnNext(request -> logger.debug("Processing project: {}", request))
                 .map(this::toProjectEntity)
                 .collectList()
-                .flatMap(this::saveProjects)
+                .flatMap(projects -> {
+                    if (projects.size() > 100) {
+                        return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create more than 100 projects at a time"));
+                    }
+                    return saveProjects(projects);
+                })
                 .doOnError(error -> logger.error("Error occurred while creating projects", error));
     }
 

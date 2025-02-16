@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Provides centralized, reusable validation utilities.
+ * Provides centralized and reusable validation utilities.
  */
 public final class Validators {
 
@@ -15,7 +15,7 @@ public final class Validators {
     }
 
     /**
-     * Ensures the provided string is neither null nor blank.
+     * Validates the provided string is neither null nor blank.
      *
      * @param value        The string to validate.
      * @param errorMessage Supplier for the error message if validation fails.
@@ -29,7 +29,7 @@ public final class Validators {
     }
 
     /**
-     * Ensures the provided BigDecimal is non-null and non-negative.
+     * Validates the provided BigDecimal is non-null and non-negative.
      *
      * @param value        The BigDecimal to validate.
      * @param errorMessage Supplier for the error message if validation fails.
@@ -43,7 +43,7 @@ public final class Validators {
     }
 
     /**
-     * Ensures the collection is non-null, non-empty, and contains no null elements.
+     * Validates the collection is non-null, non-empty, and contains no null elements.
      *
      * @param collection   The collection to validate.
      * @param errorMessage Supplier for the error message if validation fails.
@@ -58,7 +58,7 @@ public final class Validators {
     }
 
     /**
-     * Ensures the provided integer is non-negative.
+     * Validates the provided integer is non-negative.
      *
      * @param value        The integer to validate.
      * @param errorMessage Supplier for the error message if validation fails.
@@ -71,7 +71,7 @@ public final class Validators {
     }
 
     /**
-     * Ensures the provided value is non-null.
+     * Validates the provided value is non-null.
      *
      * @param value        The value to validate.
      * @param errorMessage Supplier for the error message if validation fails.
