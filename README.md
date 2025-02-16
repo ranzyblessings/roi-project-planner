@@ -163,7 +163,7 @@ We use **Prometheus** to collect and monitor key application metrics, enabling p
 detection. Metrics include **request rates**, **response times**, **error rates**, **JVM performance (memory, GC,
 threads)**, and **database latency**.
 
-1. **Access Grafana and configure Prometheus once the services are running**
+1. **Access Grafana and configure Prometheus**
     - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
     - Navigate to **Data Sources**, click **"Add data source"** then Select **Prometheus**.
     - Set the **URL** to `http://prometheus:9090` (thanks to Docker DNS), then click **"Save & Test"** to verify
@@ -188,7 +188,7 @@ We use **Loki** and **Alloy** to aggregate and analyze application logs, enablin
 insights. Logs capture **request processing**, **application events**, **errors**, and **performance metrics** for
 efficient troubleshooting.
 
-1. **Access Grafana and configure Loki once the services are running**
+1. **Access Grafana and configure Loki**
     - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
     - Navigate to **Data Sources**, click **"Add data source"** then Select **Loki**.
     - Set the **URL** to `http://loki:3100` (thanks to Docker DNS), then click **"Save & Test"** to verify connectivity.

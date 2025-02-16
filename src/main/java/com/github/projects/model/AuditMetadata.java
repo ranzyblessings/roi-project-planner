@@ -9,8 +9,8 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * Represents audit metadata for tracking creation and modification timestamps.
- * Integrates with Spring Data’s auditing framework to manage these timestamps automatically.
+ * Tracks creation and modification timestamps for entity auditing.
+ * Uses Spring Data’s auditing framework to autopopulate timestamps.
  */
 @UserDefinedType("audit_metadata")
 public record AuditMetadata(
@@ -19,8 +19,8 @@ public record AuditMetadata(
 ) implements Serializable {
 
     /**
-     * Returns an {@code AuditMetadata} instance with null timestamps,
-     * which will be automatically set and updated by Spring Data's auditing system.
+     * Returns an instance with null timestamps.
+     * Spring Data will populate these values automatically.
      */
     public static AuditMetadata empty() {
         return new AuditMetadata(null, null);

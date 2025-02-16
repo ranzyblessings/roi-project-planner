@@ -34,7 +34,7 @@ public class KafkaConfiguration {
     @Bean
     public NewTopic capitalMaximizationQueryEventsDLQTopic() {
         return TopicBuilder.name(CAPITAL_MAXIMIZATION_QUERY_DLQ_TOPIC)
-                .partitions(1) // Only one partition is needed for the Dead Letter Queue (DLQ)
+                .partitions(1) // Only one partition is required for the Dead Letter Queue (DLQ).
                 .replicas(replicaCount)
                 .build();
     }

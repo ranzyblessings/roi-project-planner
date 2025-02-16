@@ -1,10 +1,11 @@
 package com.github.projects.api;
 
 /**
- * Standardized API response wrapper for consistent structure. Includes HTTP status, message, and data.
+ * Standardized API response wrapper providing a consistent structure.
+ * Encapsulates the HTTP status code, message, and data.
  * Immutable and thread-safe.
  *
- * @param <T> The data type of the response payload.
+ * @param <T> The response payload type.
  */
 public final class ApiResponse<T> {
     private final int statusCode;
@@ -13,7 +14,7 @@ public final class ApiResponse<T> {
 
     private ApiResponse(int statusCode, String message, T data) {
         if (statusCode < 100 || statusCode > 599) {
-            throw new IllegalArgumentException(String.format("Invalid HTTP status code: %d", statusCode));
+            throw new IllegalArgumentException("Invalid HTTP status code: %d".formatted(statusCode));
         }
         this.statusCode = statusCode;
         this.message = message;
@@ -33,7 +34,13 @@ public final class ApiResponse<T> {
     }
 
     /**
-     * Creates a success response with the provided HTTP status code and data.
+     * Creates a success response with the given status code and data.
+     *
+     * @param statusCode HTTP status code.
+     * @param data       Response payload.
+     * @param <T>        Type of response data.
+     * @return A success response instance.
+     * @throws IllegalArgumentException if data is null.
      */
     public static <T> ApiResponse<T> success(int statusCode, T data) {
         if (data == null) {
@@ -43,7 +50,13 @@ public final class ApiResponse<T> {
     }
 
     /**
-     * Creates an error response with the provided HTTP status code and the error message.
+     * Creates an error response with the given status code and message.
+     *
+     * @param statusCode HTTP status code.
+     * @param message    Error message.
+     * @param <T>        Response data type (typically null for errors).
+     * @return An error response instance.
+     * @throws IllegalArgumentException if message is null or empty.
      */
     public static <T> ApiResponse<T> error(int statusCode, String message) {
         if (message == null || message.isEmpty()) {
@@ -52,6 +65,11 @@ public final class ApiResponse<T> {
         return new ApiResponse<>(statusCode, message, null);
     }
 
+    /**
+     * Returns a formatted string representation of the response.
+     *
+     * @return A string containing status code, message, and data.
+     */
     @Override
     public String toString() {
         return "ApiResponse{statusCode=%d, message='%s', data=%s}".formatted(statusCode, message, data);

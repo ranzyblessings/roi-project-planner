@@ -23,8 +23,7 @@ public class ProjectService {
     }
 
     /**
-     * Asynchronously saves a collection of projects to the repository,
-     * and ensuring that no null or empty elements are included.
+     * Asynchronously saves a collection of projects to the repository while ensuring that no null or empty elements are included.
      */
     public Flux<ProjectDTO> addAll(Iterable<ProjectEntity> projects) {
         return Mono.fromCallable(() -> {
@@ -48,7 +47,6 @@ public class ProjectService {
 
     /**
      * Retrieves all projects from the repository as a stream of ProjectDTO objects.
-     * This method returns a Flux, indicating a non-blocking, reactive operation.
      */
     public Flux<ProjectDTO> findAll() {
         return projectRepository.findAll().map(ProjectDTO::fromEntity);

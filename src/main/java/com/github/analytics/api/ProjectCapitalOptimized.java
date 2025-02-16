@@ -10,14 +10,14 @@ import static com.github.projects.model.Validators.requireNonNullAndNonNegative;
 
 /**
  * Immutable record representing the result of a capital maximization operation.
- * Contains the selected projects and the final accumulated capital.
+ * Represents the outcome of capital maximization, including the selected projects and final capital.
  */
 public record ProjectCapitalOptimized(
         List<ProjectDTO> selectedProjects,
         BigDecimal finalCapital) {
 
     public ProjectCapitalOptimized {
-        requireNonNull(selectedProjects, () -> "Selected projects list must not be null");
-        requireNonNullAndNonNegative(finalCapital, () -> "Final capital must not be null and must be non-negative");
+        requireNonNull(selectedProjects, () -> "Selected projects cannot be null.");
+        requireNonNullAndNonNegative(finalCapital, () -> "Final capital cannot be null or negative.");
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.UUID;
+import java.util.Objects;
 
 import static com.github.projects.model.Validators.requireNonNull;
 
@@ -30,23 +30,41 @@ public class ProjectCapitalOptimizerEventPublisher {
     }
 
     public Mono<Boolean> publishEvent(CapitalMaximizationQueryEvent event) {
-        logger.info("Preparing to publish capital maximization query event to topic: {}", event);
+        requireNonNull(event, () -> "Capital maximization query event cannot be null");
+
+        logger.info("Publishing event with maxProjects: {}, initialCapital: {}",
+                event.maxProjects(), event.initialCapital());
 
         return Mono.fromCallable(() -> {
-                    requireNonNull(event, () -> "Capital maximization query event cannot be null");
+                    // Generate a partition key based on event data for better load balancing (round-robin effect)
+                    String partitionKey = generatePartitionKey(event);
 
-                    // Build the message with the event payload and set the partition key
+                    // Build the message with event payload and computed partition key
                     Message<CapitalMaximizationQueryEvent> message = MessageBuilder.withPayload(event)
-                            .setHeader(PARTITION_KEY_HEADER, UUID.randomUUID().toString()) // Set partition key for round-robin or even distribution
+                            .setHeader(PARTITION_KEY_HEADER, partitionKey)
                             .build();
 
-                    // Send the message and log headers
+                    // Send the message and check if it was successful
                     boolean sent = streamBridge.send(CAPITAL_MAXIMIZATION_QUERY_TOPIC_OUT_BINDING, message);
-                    message.getHeaders().forEach((key, value) -> logger.info("Message header: {} = {}", key, value));
-                    logger.info("Capital maximization query event sent to topic: {}", sent);
+
+                    if (sent) {
+                        logger.info("Capital maximization query event successfully sent with partition key: {}", partitionKey);
+                    } else {
+                        logger.warn("Kafka event publishing failed for event: {}", event);
+                    }
+
                     return sent;
                 })
-                .subscribeOn(Schedulers.boundedElastic()) // Offload to a bounded elastic thread pool for blocking operations
-                .doOnError(error -> logger.error("Failed to publish capital maximization query event to topic", error));
+                .subscribeOn(Schedulers.boundedElastic()) // Offload to an elastic thread pool for blocking operations
+                .doOnError(error -> logger.error("Failed to publish capital maximization query event", error));
+    }
+
+    /**
+     * Generates a partition key based on the event data to distribute messages more evenly.
+     * This helps in achieving a round-robin effect while maintaining some consistency.
+     */
+    private String generatePartitionKey(CapitalMaximizationQueryEvent event) {
+        final int hash = Objects.hash(event.maxProjects(), event.initialCapital());
+        return Integer.toString(Math.abs(hash) % 10); // Limits partition keys to a range (e.g., 0-9)
     }
 }

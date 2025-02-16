@@ -13,10 +13,9 @@ import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 
 /**
- * Immutable record representing a project with a unique name, required capital to initiate the project,
- * and profit upon completion.
+ * Immutable record representing a project with a unique name, required capital, and expected profit.
  *
- * <p> The project name is indexed for optimized lookup performance. </p>
+ * <p> The project name is indexed for optimized lookups, and versioning is used for optimistic locking. </p>
  */
 @Table("projects")
 public record ProjectEntity(
@@ -33,16 +32,16 @@ public record ProjectEntity(
         requireNonNullOrBlank(name, () -> "Project name must not be null or blank");
 
         // Validate numeric fields
-        requireNonNullAndNonNegative(requiredCapital, () -> "Required capital must not be null and must be non-negative");
-        requireNonNullAndNonNegative(profit, () -> "Profit must not be null and must be non-negative");
+        requireNonNullAndNonNegative(requiredCapital, () -> "Required capital must be non-null and non-negative");
+        requireNonNullAndNonNegative(profit, () -> "Profit must be non-null and non-negative");
 
         // Validate audit metadata
         requireNonNull(auditMetadata, "Audit metadata must not be null");
     }
 
     /**
-     * Creates a new {@code ProjectEntity} with null ID, an empty {@code AuditMetadata} and version,
-     * which are populated by Spring Data upon persistence.
+     * Creates a new {@code ProjectEntity} with a generated ID, empty audit metadata, and null version.
+     * Spring Data populates these upon persistence.
      */
     public static ProjectEntity createNewProject(String name, BigDecimal requiredCapital, BigDecimal profit) {
         return new ProjectEntity(randomUUID(), name, requiredCapital, profit, AuditMetadata.empty(), null);

@@ -7,17 +7,18 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 /**
- * Data transfer object (DTO) for requesting capital optimization among a pool of projects.
- * Includes the maximum number of projects to complete and the initial capital available.
- * In the future, this will support more advanced project selection based on various criteria.
+ * Data Transfer Object (DTO) for requesting capital optimization among a pool of projects.
+ * Specifies the maximum number of projects that can be selected and the available initial capital.
+ *
+ * <p> Future enhancements will introduce advanced project selection based on additional criteria. </p>
  */
 public record ProjectCapitalOptimizerRequest(
-        @NotNull(message = "Max projects cannot be null")
-        @Positive(message = "Max projects must be greater than zero")
+        @NotNull(message = "Maximum projects cannot be null")
+        @Positive(message = "Maximum projects must be at least 1")
         Integer maxProjects,
 
         @NotNull(message = "Initial capital cannot be null")
-        @DecimalMin(value = "0.00", message = "Initial capital must be greater than or equal to 0")
+        @DecimalMin(value = "0.00", message = "Initial capital cannot be negative")
         BigDecimal initialCapital
 ) {
 
