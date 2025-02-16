@@ -67,6 +67,10 @@ logging:
     path: logs
     name: application.log
   level:
-    org.springframework.data.cassandra: DEBUG
+    root: INFO
+    org.springframework.data.cassandra: INFO
     org.springframework.kafka: INFO
-    org.springframework.web: DEBUG
+    org.springframework.web: INFO
+    org.springframework.web.HttpLogging: WARN
+    org.springframework.boot.actuate.metrics: WARN
+    org.springframework.boot.actuate.health: WARN

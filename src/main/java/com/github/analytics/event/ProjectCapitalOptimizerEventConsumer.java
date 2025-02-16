@@ -17,6 +17,8 @@ import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
+import static com.github.configuration.KafkaConfiguration.CAPITAL_MAXIMIZATION_QUERY_TOPIC;
+
 /**
  * Kafka consumer that processes Capital Maximization Query events from the specified Kafka partitions.
  * Processes capital maximization events and optimizes project selection. Currently, logs events for debugging.
@@ -43,7 +45,7 @@ public class ProjectCapitalOptimizerEventConsumer {
      */
     @KafkaListener(
             topicPartitions = @TopicPartition(
-                    topic = "CAPITAL_MAXIMIZATION_QUERY_TOPIC",
+                    topic = CAPITAL_MAXIMIZATION_QUERY_TOPIC,
                     partitions = {"0", "1"}
             )
     )
