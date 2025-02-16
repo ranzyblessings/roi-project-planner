@@ -61,5 +61,24 @@ services:
       timeout: 10s
       start_period: 5s
 
+  jaeger:
+    image: 'jaegertracing/jaeger:2.3.0'
+    container_name: 'jaeger'
+    ports:
+      - '4317:4317'   # OTLP gRPC
+      - '4318:4318'   # OTLP HTTP
+      - '5778:5778'   # Configuration UI
+      - '9411:9411'   # Zipkin API
+      - '16686:16686' # Jaeger UI
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:16686" ]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 5s
+
 networks:
   observability-network:

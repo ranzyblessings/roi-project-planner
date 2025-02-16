@@ -23,20 +23,34 @@ ext {
 }
 
 dependencies {
+    // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation "net.logstash.logback:logstash-logback-encoder:${logstashLogbackEncoderVersion}"
     implementation 'org.springframework.boot:spring-boot-starter-data-cassandra-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+
+    // Spring Cloud Starters
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
     implementation 'org.springframework.cloud:spring-cloud-stream'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
-    implementation 'org.springframework.kafka:spring-kafka'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+    // Tracing and Monitoring
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // Logging
+    implementation "net.logstash.logback:logstash-logback-encoder:${logstashLogbackEncoderVersion}"
+
+    // Messaging
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // Development Tools
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+    // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'io.projectreactor:reactor-test'

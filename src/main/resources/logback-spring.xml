@@ -4,7 +4,11 @@
     <!-- Define the log directory (can be overridden with the LOG_PATH environment variable) -->
     <springProperty scope="context" name="LOG_PATH" source="LOG_PATH" defaultValue="logs"/>
 
-    <!-- Console Appender: Outputs JSON formatted logs to the console -->
+    <!--
+    Console Appender: Outputs JSON formatted logs to the console.
+    This configuration enriches each log entry with caller data, a standardized timestamp, and custom service metadata.
+    Additionally, MDC values—including traceId and spanId—are captured to support distributed tracing and streamline debugging.
+    -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeCallerData>true</includeCallerData>

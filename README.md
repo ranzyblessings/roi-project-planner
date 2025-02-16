@@ -128,7 +128,9 @@ contribution is welcome._
             }'
     ```
 
-For now, view the selected projects and capital maximization details in your console after receiving the Kafka events.
+For now, to **view selected projects and capital maximization**, use Grafana as outlined
+in [Observability Setup for Local Development](#observability-setup-for-local-development) under the
+**Log Monitoring** section, or check the console logs.
 
 _In the future, advanced analytics and graphical representations will be added, with support for custom views that
 consumers can subscribe to for tailored visualizations._
@@ -142,32 +144,21 @@ consumers can subscribe to for tailored visualizations._
     docker compose -f observability/compose.yaml up -d
     ```
 
-### Log Monitoring
+### Distributed Tracing
 
-1. **Access Grafana and configure Loki once the services are running**
-    - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
-    - Navigate to **Data Sources**, click **"Add data source"** then Select **Loki**.
-    - Set the **URL** to `http://loki:3100` (thanks to Docker DNS), then click **"Save & Test"** to verify connectivity.
+To **monitor requests across services**, we use **distributed tracing** for improved observability and debugging. View
+traces in **Jaeger** to analyze request flows, latency, and dependencies.
 
-2. **Create a Log Dashboard**
-    - Click the **"+"** in the top right, select **"New Dashboard"**, then click **"Add Visualization"**.
-    - Choose **Loki** as the data source.
-    - Use **Label Filters** to refine logs (e.g., service:roi-project-planner).
-    - Enable **Table View** to see structured log entries.
-
-3. **LogQL Queries for Analysis**
-    - **Calculate the rate of successful requests (status code 201) over the last 5 minutes:**
-       ```logql
-       rate({job="roi-project-planner-logs"} |~ "statusCode=201" | json [5m])
-       ```
-    - **Count the number of error logs over the last 30 minutes.**
-      ```logql
-      count_over_time({service="roi-project-planner", level="ERROR"} | json [30m])
-      ```
-
-    - Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
+1. **Access Jaeger**
+    - Open Jaeger at `http://localhost:16686`.
+    - In the left panel, under **Service**, select `roi-project-planner` and click **Find Traces**.
+    - Send **API requests** using [API Usage](#api-usage) to visualize request flows.
 
 ### Metrics Monitoring
+
+We use **Prometheus** to collect and monitor key application metrics, enabling performance analysis and proactive issue
+detection. Metrics include **request rates**, **response times**, **error rates**, **JVM performance (memory, GC,
+threads)**, and **database latency**.
 
 _**Note:** On Mac or Windows, set the `targets` in **observability/prom-config.yaml**
 to: `- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP address._
@@ -183,14 +174,39 @@ to: `- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP addr
     - Choose **Prometheus** as the data source.
     - Use **Label Filters** to refine logs (e.g., job:roi-project-planner-metrics).
 
-3. **PromQL Queries for Analysis**
-    - **HTTP Response Status Code Counts (e.g., 2xx, 4xx, 5xx):**
-       ```promql
-       http_server_requests_seconds_count{status="200"}
-       ```
+3. **Monitor Key Metrics**
+    - `http_server_requests_seconds_count` - Total HTTP requests per endpoint.
+    - `http_server_requests_seconds_sum` - Request duration per endpoint.
+    - `jvm_memory_used_bytes` - JVM memory usage.
 
-    - Refer to the [PromQL documentation](https://prometheus.io/docs/prometheus/latest/querying/basics) for advanced
-      queries.
+- Refer to the [PromQL documentation](https://prometheus.io/docs/prometheus/latest/querying/basics) for advanced
+  queries.
+
+### Log Monitoring
+
+We use **Loki** and **Alloy** to aggregate and analyze application logs, enabling real-time debugging and operational
+insights. Logs capture **request processing**, **application events**, **errors**, and **performance metrics** for
+efficient troubleshooting.
+
+1. **Access Grafana and configure Loki once the services are running**
+    - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
+    - Navigate to **Data Sources**, click **"Add data source"** then Select **Loki**.
+    - Set the **URL** to `http://loki:3100` (thanks to Docker DNS), then click **"Save & Test"** to verify connectivity.
+
+2. **Create a Log Dashboard**
+    - Click the **"+"** in the top right, select **"New Dashboard"**, then click **"Add Visualization"**.
+    - Choose **Loki** as the data source.
+    - Use **Label Filters** to refine logs (e.g., service:roi-project-planner).
+    - Enable **Table View** to see structured log entries.
+
+3. **LogQL Queries for Analysis**
+    - `rate({job="roi-project-planner-logs"} |~ "statusCode=201" | json [30m])` - rate of successful requests (status
+      code 201) over the last 30 minutes.
+    - `rate({job="roi-project-planner-logs"} [1m])` - Track High Log Volume (Spike Detection).
+    - `rate({job="roi-project-planner-logs"} | json | level="ERROR" [5m])` - Measure Log Rate per Log Level (eg,
+      `ERROR`, `INFO`, `WARN`).
+
+- Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
 
 ---
 
