@@ -90,7 +90,7 @@ contribution is welcome._
 
 ### Projects
 
-1. To create **one** or more projects, send a **POST** request:
+1. To **create one or more projects**, send a **POST** request:
 
     ```bash
     curl -X POST http://localhost:8080/api/v1/projects \
@@ -139,6 +139,9 @@ consumers can subscribe to for tailored visualizations._
 
 ## Observability Setup for Local Development
 
+_**Note:** On Mac or Windows, set the `targets` in **observability/prom-config.yaml**
+to: `- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP address._
+
 1. **Start Observability Services**
     ```bash
     docker compose -f observability/compose.yaml up -d
@@ -152,16 +155,13 @@ traces in **Jaeger** to analyze request flows, latency, and dependencies.
 1. **Access Jaeger**
     - Open Jaeger at `http://localhost:16686`.
     - In the left panel, under **Service**, select `roi-project-planner` and click **Find Traces**.
-    - Send **API requests** using [API Usage](#api-usage) to visualize request flows.
+    - Send **API requests** using the [API Usage](#api-usage) guide to visualize request flows.
 
 ### Metrics Monitoring
 
 We use **Prometheus** to collect and monitor key application metrics, enabling performance analysis and proactive issue
 detection. Metrics include **request rates**, **response times**, **error rates**, **JVM performance (memory, GC,
 threads)**, and **database latency**.
-
-_**Note:** On Mac or Windows, set the `targets` in **observability/prom-config.yaml**
-to: `- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP address._
 
 1. **Access Grafana and configure Prometheus once the services are running**
     - Open Grafana at `http://localhost:3000` (default login: `admin` / `admin`).
