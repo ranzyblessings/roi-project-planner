@@ -37,7 +37,7 @@ cloud-native patterns including reactive programming, fault tolerance, and event
 - **Observability:** Equipped with Prometheus, Grafana, Jaeger, and Argo CD for metrics, monitoring, distributed
   tracing, and GitOps.
 - **Logging Strategy:** Employs SLF4J with Logback and logstash-logback-encoder to produce structured JSON logs. Logs
-  are collected by Alloy, sent to Loki, and visualized in Grafana for comprehensive observability.
+  are collected by Alloy, sent to Loki for indexing, and visualized in Grafana for comprehensive observability.
 
 ---
 
@@ -157,6 +157,8 @@ traces in **Jaeger** to analyze request flows, latency, and dependencies.
     - In the left panel, under **Service**, select `roi-project-planner` and click **Find Traces**.
     - Send **API requests** using the [API Usage](#api-usage) guide to visualize request flows.
 
+_**Note:** You can also visualize traces in Grafana by adding Jaeger as a data source._
+
 ### Metrics Monitoring
 
 We use **Prometheus** to collect and monitor key application metrics, enabling performance analysis and proactive issue
@@ -179,8 +181,8 @@ threads)**, and **database latency**.
     - `http_server_requests_seconds_sum` - Request duration per endpoint.
     - `jvm_memory_used_bytes` - JVM memory usage.
 
-- Refer to the [PromQL documentation](https://prometheus.io/docs/prometheus/latest/querying/basics) for advanced
-  queries.
+Refer to the [PromQL documentation](https://prometheus.io/docs/prometheus/latest/querying/basics) for advanced
+queries.
 
 ### Log Monitoring
 
@@ -206,15 +208,18 @@ efficient troubleshooting.
     - `rate({job="roi-project-planner-logs"} | json | level="ERROR" [5m])` - Measure Log Rate per Log Level (eg,
       `ERROR`, `INFO`, `WARN`).
 
-- Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
+Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
 
 ---
 
 ## Deployment
 
-To deploy the ROI Project Planner, we use **Terraform** to provision the necessary infrastructure for a Kubernetes
-cluster along with its dependencies, such as a Kafka cluster, Cassandra cluster, and Redis. Additionally, Argo CD is
-utilized for GitOps, while Prometheus, Grafana, and Jaeger provide metrics, monitoring, and distributed tracing.
+To deploy the ROI Project Planner in production, we use **Terraform** to provision a secure **EKS cluster** with managed
+dependencies, including Kafka, Cassandra, and Redis. The setup includes a dedicated VPC, high-availability subnets,
+security groups, and persistent storage with Amazon EBS volumes. Argo CD enables GitOps for CI/CD, while Prometheus,
+Grafana, and Jaeger handle metrics, monitoring, and distributed tracing. We enforce IAM roles for access control,
+implement SSL/TLS encryption, and configure auto-scaling for resilience. Additionally, log files are stored in Amazon S3
+for long-term retention and easy access.
 
 _(Terraform project link will be available soon.)_
 
