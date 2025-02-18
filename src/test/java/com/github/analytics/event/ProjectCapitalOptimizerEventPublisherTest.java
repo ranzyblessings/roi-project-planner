@@ -48,8 +48,7 @@ class ProjectCapitalOptimizerEventPublisherTest {
                 .expectNext(true)
                 .verifyComplete();
 
-        ArgumentCaptor<Message<CapitalMaximizationQueryEvent>> messageCaptor =
-                ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message<CapitalMaximizationQueryEvent>> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(streamBridge, times(1))
                 .send(eq(CAPITAL_MAXIMIZATION_QUERY_TOPIC_OUT_BINDING), messageCaptor.capture());
 
@@ -105,8 +104,7 @@ class ProjectCapitalOptimizerEventPublisherTest {
                 .expectNext(true)
                 .verifyComplete();
 
-        ArgumentCaptor<Message<CapitalMaximizationQueryEvent>> messageCaptor =
-                ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message<CapitalMaximizationQueryEvent>> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(streamBridge, times(1))
                 .send(eq(CAPITAL_MAXIMIZATION_QUERY_TOPIC_OUT_BINDING), messageCaptor.capture());
 

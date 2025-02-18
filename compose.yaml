@@ -23,9 +23,9 @@ services:
       # Log directory
       KAFKA_LOG_DIRS: '/var/lib/kafka/data'
     volumes:
-      - kafka-data-volume:/var/lib/kafka/data
+      - dev-kafka-data:/var/lib/kafka/data
     networks:
-      - roi-project-planner-network
+      - dev-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "0.0.0.0:9092", "--list" ]
@@ -44,9 +44,9 @@ services:
     ports:
       - '9042:9042'
     volumes:
-      - cassandra-data-volume:/var/lib/cassandra
+      - dev-cassandra-data:/var/lib/cassandra
     networks:
-      - roi-project-planner-network
+      - dev-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "cqlsh", "-e", "describe keyspaces;" ]
@@ -64,7 +64,7 @@ services:
     volumes:
       - ./config/cassandra-init-scripts:/scripts
     networks:
-      - roi-project-planner-network
+      - dev-network
     entrypoint:
       - sh
       - -c
@@ -85,20 +85,20 @@ services:
       - '6379:6379'
     restart: unless-stopped
     volumes:
-      - redis-data-volume:/data
+      - dev-redis-data:/data
     networks:
-      - roi-project-planner-network
+      - dev-network
     healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "secret", "PING" ]
+      test: [ "CMD", "redis-cli", "PING" ]
       interval: 30s
       retries: 3
       start_period: 5s
       timeout: 10s
 
 volumes:
-  kafka-data-volume:
-  cassandra-data-volume:
-  redis-data-volume:
+  dev-kafka-data:
+  dev-cassandra-data:
+  dev-redis-data:
 
 networks:
-  roi-project-planner-network:
+  dev-network:

@@ -60,11 +60,12 @@ public class ProjectCapitalOptimizerEventPublisher {
     }
 
     /**
-     * Generates a partition key based on the event data to distribute messages more evenly.
-     * This helps in achieving a round-robin effect while maintaining some consistency.
+     * Computes a deterministic partition key based on event attributes to ensure consistent
+     * message routing. The partition key is mapped to a range (0-9), promoting even distribution
+     * of messages across available partitions.
      */
     private String generatePartitionKey(CapitalMaximizationQueryEvent event) {
         final int hash = Objects.hash(event.maxProjects(), event.initialCapital());
-        return Integer.toString(Math.abs(hash) % 10); // Limits partition keys to a range (e.g., 0-9)
+        return Integer.toString(Math.abs(hash) % 10);
     }
 }

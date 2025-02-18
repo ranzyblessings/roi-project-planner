@@ -12,6 +12,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +55,7 @@ class ProjectCapitalOptimizerApiControllerTest {
 
         verify(projectCapitalOptimizerEventPublisher, times(1))
                 .publishEvent(argThat(event ->
-                        event.maxProjects() == expectedEvent.maxProjects() &&
+                        Objects.equals(event.maxProjects(), expectedEvent.maxProjects()) &&
                                 event.initialCapital().compareTo(expectedEvent.initialCapital()) == 0
                 ));
 

@@ -38,7 +38,7 @@ class ProjectCapitalOptimizerEventConsumerTest {
     private static final String VALID_JSON_EVENT = "{\"maxProjects\": 2, \"initialCapital\": \"100.00\"}";
 
     @Test
-    void shouldProcessCapitalMaximizationEventSuccessfully() throws JsonProcessingException {
+    void shouldProcessCapitalMaximizationEventSuccessfully() {
         // Given
         var project = new ProjectDTO(randomUUID(), "Project 1", new BigDecimal("100.00"), new BigDecimal("500.00"), AuditMetadata.empty(), 0L);
         var optimized = new ProjectCapitalOptimized(List.of(project), new BigDecimal("500.00"));
