@@ -60,7 +60,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build the Docker image using Spring Boot Buildpacks
+      - name: Build the Docker image using Cloud Native Buildpacks
         run: |
           IMAGE_NAME="ranzyblessingsdocker/roi-project-planner"
           TAG_LATEST="${IMAGE_NAME}:latest"
