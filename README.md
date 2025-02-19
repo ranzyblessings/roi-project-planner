@@ -1,4 +1,4 @@
-# Return On Investment (ROI) Project Planner
+# Return On Investment Project Planner
 
 ## Overview
 
