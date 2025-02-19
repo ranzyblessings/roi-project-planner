@@ -35,7 +35,7 @@ jobs:
       - name: Build and test the application with Gradle
         run: ./gradlew clean build  # This will build and run tests in one command
 
-  # Job to build the Docker image using Spring Boot Buildpacks and push it to Docker Hub
+  # Job to build the Docker image using Cloud Native Buildpacks, scan it for vulnerabilities with Trivy, and push it to Docker Hub
   dockerize_and_deploy_image:
     runs-on: ubuntu-latest
     needs: build_and_test_application  # Ensure this job only runs after successful build and tests
