@@ -50,6 +50,9 @@ dependencies {
     // Development Tools
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
+    // Apply latest Netty handler patch to resolve CVE-2025-24970
+    implementation 'io.netty:netty-handler:4.1.118.Final'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
