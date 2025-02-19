@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.CassandraContainer;
+import org.testcontainers.cassandra.CassandraContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -25,8 +25,8 @@ public abstract class TestcontainersConfiguration {
 
     @Container
     @ServiceConnection
-    private static final CassandraContainer<?> CASSANDRA_CONTAINER =
-            new CassandraContainer<>(DockerImageName.parse("cassandra:5.0.3"))
+    private static final CassandraContainer CASSANDRA_CONTAINER =
+            new CassandraContainer(DockerImageName.parse("cassandra:5.0.3"))
                     .waitingFor(Wait.forListeningPort())
                     .withExposedPorts(9042);
 
