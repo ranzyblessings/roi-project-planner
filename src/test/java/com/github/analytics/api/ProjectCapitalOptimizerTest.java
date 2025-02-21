@@ -1,5 +1,6 @@
 package com.github.analytics.api;
 
+import com.github.analytics.exception.InvalidCapitalMaximizationQueryException;
 import com.github.projects.model.AuditMetadata;
 import com.github.projects.model.ProjectDTO;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,8 @@ class ProjectCapitalOptimizerTest {
         // Then: Verify that an IllegalArgumentException is thrown with the correct message
         StepVerifier.create(resultMono)
                 .expectErrorSatisfies(error -> {
-                    assertThat(error).isInstanceOf(IllegalArgumentException.class);
-                    assertThat(error).hasMessage("Query and available projects list must not be null.");
+                    assertThat(error).isInstanceOf(InvalidCapitalMaximizationQueryException.class);
+                    assertThat(error).hasMessage("Query must not be null.");
                 })
                 .verify();
     }

@@ -79,7 +79,7 @@ class ProjectCapitalOptimizerApiControllerTest {
                 .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expectBody()
                 .jsonPath("$.statusCode").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.message").value(containsString("Publishing failed"));
+                .jsonPath("$.message").isEqualTo("An unexpected error occurred.");
 
         verify(projectCapitalOptimizerEventPublisher, times(1)).publishEvent(any(CapitalMaximizationQueryEvent.class));
         verifyNoMoreInteractions(projectCapitalOptimizerEventPublisher);
