@@ -1,5 +1,6 @@
 package com.github.analytics.api;
 
+import com.github.analytics.exception.InvalidCapitalMaximizationQueryException;
 import com.github.projects.model.ProjectDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +27,12 @@ public class ProjectCapitalOptimizer {
      *
      * @param query The capital maximization query specifying available projects, maximum selections, and initial capital.
      * @return a {@code Mono} emitting a {@link ProjectCapitalOptimized} containing the selected projects and final capital.
-     * @throws IllegalArgumentException if the query or its available projects list is null.
+     * @throws InvalidCapitalMaximizationQueryException if the query is null.
      */
     public Mono<ProjectCapitalOptimized> maximizeCapital(CapitalMaximizationQuery query) {
-        if (query == null || query.availableProjects() == null) {
-            logger.error("Received null query or available projects list.");
-            return Mono.error(new IllegalArgumentException("Query and available projects list must not be null."));
+        if (query == null) {
+            logger.error("Received null capital maximization query.");
+            return Mono.error(new InvalidCapitalMaximizationQueryException("Query must not be null."));
         }
 
         logger.info("Starting capital maximization with initial capital: {} and {} available projects.",

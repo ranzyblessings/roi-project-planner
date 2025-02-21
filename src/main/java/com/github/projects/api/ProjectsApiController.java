@@ -1,5 +1,6 @@
 package com.github.projects.api;
 
+import com.github.projects.exception.TooManyProjectsException;
 import com.github.projects.model.ProjectDTO;
 import com.github.projects.model.ProjectEntity;
 import jakarta.validation.Valid;
@@ -7,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -17,6 +17,7 @@ import java.util.List;
 @RequestMapping(value = "/api/v1/projects")
 public class ProjectsApiController {
     private static final Logger logger = LoggerFactory.getLogger(ProjectsApiController.class);
+    private static final int PROJECT_CREATION_LIMIT = 100;
 
     private final ProjectService projectService;
 
@@ -35,8 +36,8 @@ public class ProjectsApiController {
                 .map(this::toProjectEntity)
                 .collectList()
                 .flatMap(projects -> {
-                    if (projects.size() > 100) {
-                        return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create more than 100 projects at a time"));
+                    if (projects.size() > PROJECT_CREATION_LIMIT) {
+                        return Mono.error(new TooManyProjectsException("Cannot create more than 100 projects at a time"));
                     }
                     return saveProjects(projects);
                 })

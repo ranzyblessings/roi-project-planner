@@ -1,5 +1,7 @@
 package com.github.projects.api;
 
+import com.github.projects.exception.InvalidProjectException;
+import com.github.projects.exception.ProjectNotFoundException;
 import com.github.projects.model.AuditMetadata;
 import com.github.projects.model.ProjectDTO;
 import com.github.projects.model.ProjectEntity;
@@ -18,7 +20,6 @@ import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static java.util.UUID.randomUUID;
 import static org.mockito.Mockito.verify;
@@ -72,8 +73,8 @@ class ProjectServiceTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException
-                        && throwable.getMessage().equals("Projects cannot be null or empty"))
+                .expectErrorMatches(throwable -> throwable instanceof InvalidProjectException
+                        && throwable.getMessage().equals("Project collection must not be empty or contain null elements."))
                 .verify();
     }
 
@@ -87,8 +88,8 @@ class ProjectServiceTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof NullPointerException
-                        && throwable.getMessage().equals("Projects cannot be null or empty"))
+                .expectErrorMatches(throwable -> throwable instanceof InvalidProjectException
+                        && throwable.getMessage().equals("Project collection must not be null."))
                 .verify();
     }
 
@@ -111,7 +112,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    void testFindById_ProjectNotFound() {
+    void testFindById_ProjectNotFoundException() {
         // Given
         String projectId = "2";
 
@@ -122,7 +123,7 @@ class ProjectServiceTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof NoSuchElementException
+                .expectErrorMatches(throwable -> throwable instanceof ProjectNotFoundException
                         && throwable.getMessage().contains("Project not found for ID: 2"))
                 .verify();
 

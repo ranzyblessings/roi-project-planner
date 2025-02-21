@@ -37,7 +37,7 @@ public class ProjectCapitalOptimizerEventPublisher {
 
         return Mono.fromCallable(() -> {
                     // Generate a partition key based on event data for better load balancing (round-robin effect)
-                    String partitionKey = generatePartitionKey(event);
+                    final String partitionKey = generatePartitionKey(event);
 
                     // Build the message with event payload and computed partition key
                     Message<CapitalMaximizationQueryEvent> message = MessageBuilder.withPayload(event)

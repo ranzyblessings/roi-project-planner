@@ -1,5 +1,7 @@
 package com.github.projects.api;
 
+import com.github.projects.exception.InvalidProjectException;
+import com.github.projects.exception.ProjectNotFoundException;
 import com.github.projects.model.ProjectDTO;
 import com.github.projects.model.ProjectEntity;
 import com.github.projects.model.ProjectRepository;
@@ -8,11 +10,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.NoSuchElementException;
+import java.util.stream.StreamSupport;
 
 import static com.github.configuration.CacheConfiguration.PROJECT_ID_CACHE_KEY;
-import static com.github.projects.model.Validators.requireNonNullAndNoNullElements;
 
 @Service
 public class ProjectService {
@@ -23,15 +23,22 @@ public class ProjectService {
     }
 
     /**
-     * Asynchronously saves a collection of projects to the repository while ensuring that no null or empty elements are included.
+     * Lazily asynchronously saves a collection of projects to the repository while ensuring the input is valid.
      */
-    public Flux<ProjectDTO> addAll(Iterable<ProjectEntity> projects) {
-        return Mono.fromCallable(() -> {
-                    requireNonNullAndNoNullElements((Collection<ProjectEntity>) projects, () -> "Projects cannot be null or empty");
-                    return projects;
-                })
-                .flatMapMany(projectRepository::saveAll)
-                .map(ProjectDTO::fromEntity);
+    public Flux<ProjectDTO> addAll(final Iterable<ProjectEntity> projects) {
+        return Flux.defer(() -> {
+            if (projects == null) {
+                return Flux.error(new InvalidProjectException("Project collection must not be null."));
+            }
+
+            final var projectList = StreamSupport.stream(projects.spliterator(), false).toList();
+
+            if (projectList.isEmpty() || projectList.contains(null)) {
+                return Flux.error(new InvalidProjectException("Project collection must not be empty or contain null elements."));
+            }
+
+            return projectRepository.saveAll(projectList).map(ProjectDTO::fromEntity);
+        });
     }
 
     /**
@@ -39,9 +46,9 @@ public class ProjectService {
      * Caches the result to improve performance for repeated lookups of the same project ID.
      */
     @Cacheable(value = PROJECT_ID_CACHE_KEY, key = "#id")
-    public Mono<ProjectDTO> findById(String id) {
+    public Mono<ProjectDTO> findById(final String id) {
         return projectRepository.findById(id)
-                .switchIfEmpty(Mono.error(new NoSuchElementException("Project not found for ID: %s".formatted(id))))
+                .switchIfEmpty(Mono.error(new ProjectNotFoundException("Project not found for ID: %s".formatted(id))))
                 .map(ProjectDTO::fromEntity);
     }
 

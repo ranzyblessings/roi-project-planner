@@ -1,9 +1,8 @@
 package com.github.projects.api;
 
 /**
- * Standardized API response wrapper providing a consistent structure.
- * Encapsulates the HTTP status code, message, and data.
- * Immutable and thread-safe.
+ * Immutable and thread-safe standardized API response wrapper providing a consistent structure.
+ * Encapsulates the HTTP status code, a message (typically an error), and the response data.
  *
  * @param <T> The response payload type.
  */
@@ -35,12 +34,6 @@ public final class ApiResponse<T> {
 
     /**
      * Creates a success response with the given status code and data.
-     *
-     * @param statusCode HTTP status code.
-     * @param data       Response payload.
-     * @param <T>        Type of response data.
-     * @return A success response instance.
-     * @throws IllegalArgumentException if data is null.
      */
     public static <T> ApiResponse<T> success(int statusCode, T data) {
         if (data == null) {
@@ -51,12 +44,6 @@ public final class ApiResponse<T> {
 
     /**
      * Creates an error response with the given status code and message.
-     *
-     * @param statusCode HTTP status code.
-     * @param message    Error message.
-     * @param <T>        Response data type (typically null for errors).
-     * @return An error response instance.
-     * @throws IllegalArgumentException if message is null or empty.
      */
     public static <T> ApiResponse<T> error(int statusCode, String message) {
         if (message == null || message.isEmpty()) {
@@ -65,11 +52,6 @@ public final class ApiResponse<T> {
         return new ApiResponse<>(statusCode, message, null);
     }
 
-    /**
-     * Returns a formatted string representation of the response.
-     *
-     * @return A string containing status code, message, and data.
-     */
     @Override
     public String toString() {
         return "ApiResponse{statusCode=%d, message='%s', data=%s}".formatted(statusCode, message, data);
