@@ -64,7 +64,7 @@ To run the project locally using Docker, follow these steps:
     ```
 2. **Start Dependencies with Docker Compose:**
    ```bash
-      docker compose up -d
+      docker compose up --build -d
    ```
 
    **Note:** This command will start the following services:
