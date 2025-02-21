@@ -56,7 +56,8 @@ services:
       timeout: 10s
 
   cassandra-init:
-    image: 'python:3.9-slim-buster'
+    image: 'cassandra-init:latest'
+    build: ./config/cassandra-init-scripts
     container_name: 'cassandra-init'
     depends_on:
       cassandra:
@@ -65,17 +66,6 @@ services:
       - ./config/cassandra-init-scripts:/scripts
     networks:
       - dev-network
-    entrypoint:
-      - sh
-      - -c
-      - |
-        apt-get update && apt-get install -y netcat-openbsd;
-        pip install cassandra-driver;
-        while ! nc -zv cassandra 9042; do
-          echo "Waiting for Cassandra to be available...";
-          sleep 1;
-        done;
-        python3 /scripts/init_cassandra.py
     restart: no
 
   redis:
