@@ -62,8 +62,6 @@ services:
     depends_on:
       cassandra:
         condition: service_healthy
-    volumes:
-      - ./config/cassandra-init-scripts:/scripts
     networks:
       - dev-network
     restart: no

@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y netcat-openbsd && \
 # Set working directory
 WORKDIR /scripts
 
-# Copy init script into container
+# Copy init scripts into container
+COPY init.cql /scripts/init.cql
 COPY init_cassandra.py /scripts/init_cassandra.py
 
 # Entrypoint command: wait for Cassandra to be ready, then execute the script
