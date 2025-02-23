@@ -90,43 +90,43 @@ contribution is welcome._
 
 ### Projects
 
-1. To **create one or more projects**, send a **POST** request:
+To **create one or more projects**, send a **POST** request:
 
-    ```bash
-    curl -X POST http://localhost:8080/api/v1/projects \
-         -H "Content-Type: application/json" \
-         -d '[
-               {
-                 "name": "Project 1",
-                 "requiredCapital": 0.00,
-                 "profit": 100.00
-               },
-               {
-                 "name": "Project 2",
-                 "requiredCapital": 100.00,
-                 "profit": 200.00
-               },
-               {
-                 "name": "Project 3",
-                 "requiredCapital": 100.00,
-                 "profit": 300.00
-               }
-             ]'
-    ```
+ ```bash
+ curl -X POST http://localhost:8080/api/v1/projects \
+      -H "Content-Type: application/json" \
+      -d '[
+            {
+              "name": "Project 1",
+              "requiredCapital": 0.00,
+              "profit": 100.00
+            },
+            {
+              "name": "Project 2",
+              "requiredCapital": 100.00,
+              "profit": 200.00
+            },
+            {
+              "name": "Project 3",
+              "requiredCapital": 100.00,
+              "profit": 300.00
+            }
+          ]'
+ ```
 
 ### Project Capital Maximization
 
-1. To **maximize capital** by selecting up to _k_ distinct projects from a pool of available projects, send a **POST**
-   request:
+To **maximize capital** by selecting up to _k_ distinct projects from a pool of available projects, send a **POST**
+request:
 
-    ```bash
-    curl -X POST http://localhost:8080/api/v1/capital/maximization/query \
-         -H "Content-Type: application/json" \
-         -d '{
-              "maxProjects":2,
-              "initialCapital":"100.00" 
-            }'
-    ```
+ ```bash
+ curl -X POST http://localhost:8080/api/v1/capital/maximization/query \
+      -H "Content-Type: application/json" \
+      -d '{
+           "maxProjects":2,
+           "initialCapital":"100.00" 
+         }'
+ ```
 
 For now, to **view selected projects and capital maximization**, use Grafana as outlined
 in [Observability Setup for Local Development](#observability-setup-for-local-development) under the
@@ -134,6 +134,23 @@ in [Observability Setup for Local Development](#observability-setup-for-local-de
 
 _In the future, advanced analytics and graphical representations will be added, with support for custom views that
 consumers can subscribe to for tailored visualizations._
+
+### List all projects
+
+To **retrieve all projects**, send a **GET** request:
+
+```bash
+curl http://localhost:8080/api/v1/projects
+```
+
+### List project by ID
+
+To **retrieve a project** by its unique identifier, send a **GET** request with the project **ID**. Subsequent requests
+are faster due to **caching**.
+
+```bash
+curl http://localhost:8080/api/v1/projects/{ID}
+```
 
 ---
 

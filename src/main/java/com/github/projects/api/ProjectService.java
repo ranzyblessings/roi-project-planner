@@ -5,14 +5,23 @@ import com.github.projects.exception.ProjectNotFoundException;
 import com.github.projects.model.ProjectDTO;
 import com.github.projects.model.ProjectEntity;
 import com.github.projects.model.ProjectRepository;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.TimeoutException;
 import java.util.stream.StreamSupport;
 
 @Service
 public class ProjectService {
+    private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
+    private static final String PROJECTS_RESILIENCE_CONFIG_NAME = "projects";
+
     private final ProjectRepository projectRepository;
     private final ProjectCacheService projectCacheService;
 
@@ -41,9 +50,11 @@ public class ProjectService {
     }
 
     /**
-     * Retrieves a project by its ID from the repository.
-     * Caches the result to optimize performance for repeated lookups of the same project ID.
+     * Retrieves a project by ID with caching and resilience mechanisms.
+     * Falls back to cache on timeouts or circuit breaker activation.
      */
+    @TimeLimiter(name = PROJECTS_RESILIENCE_CONFIG_NAME, fallbackMethod = "findByIdTimeoutFallback")
+    @CircuitBreaker(name = PROJECTS_RESILIENCE_CONFIG_NAME, fallbackMethod = "findByIdCircuitBreakerFallback")
     public Mono<ProjectDTO> findById(final String id) {
         return projectCacheService.getProjectFromCache(id)
                 .switchIfEmpty(
@@ -53,6 +64,16 @@ public class ProjectService {
                                 .flatMap(project -> projectCacheService.cacheProject(id, project).thenReturn(project))
                         )
                 );
+    }
+
+    private Mono<ProjectDTO> findByIdTimeoutFallback(String id, TimeoutException e) {
+        logger.info("Project findById request timed out after 2 seconds. Checking cache for record as fallback.", e);
+        return projectCacheService.getProjectFromCache(id).switchIfEmpty(Mono.empty());
+    }
+
+    private Mono<ProjectDTO> findByIdCircuitBreakerFallback(String id, CallNotPermittedException e) {
+        logger.info("Project findById encountered an error. Checking cache for record as fallback.", e);
+        return projectCacheService.getProjectFromCache(id).switchIfEmpty(Mono.empty());
     }
 
     /**

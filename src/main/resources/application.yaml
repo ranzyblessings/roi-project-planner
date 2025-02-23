@@ -42,6 +42,36 @@ spring:
             backOffMultiplier: 2.0
             partitioned: true
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      projects:
+        allowHealthIndicatorToFail: false
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        ignoreExceptions:
+          - com.github.analytics.exception.InvalidCapitalMaximizationQueryException
+          - com.github.projects.exception.InvalidProjectException
+          - com.github.projects.exception.ProjectNotFoundException
+          - com.github.projects.exception.TooManyProjectsException
+          - com.github.projects.exception.TransientException
+  timelimiter:
+    instances:
+      projects:
+        timeoutDuration: 2s
+  retry:
+    instances:
+      projects:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - com.github.projects.exception.TransientException
+
 management:
   endpoints:
     web:
@@ -61,6 +91,9 @@ management:
     exporter:
       zipkin:
         endpoint: http://localhost:9411/api/v2/spans # Exports trace data to Jaeger via Zipkin API.
+  health:
+    circuitbreakers:
+      enabled: true
 
 logging:
   file:
