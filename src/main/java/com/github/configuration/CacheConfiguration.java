@@ -1,5 +1,9 @@
 package com.github.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.projects.model.ProjectDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -12,16 +16,17 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
 
 @Configuration
 @EnableCaching
 public class CacheConfiguration {
-    public static final String PROJECT_ID_CACHE_KEY = "project-id";
+    public static final String PROJECT_ID_CACHE_KEY = "project-id-cache";
+    public static final int CACHE_TTL_IN_MINUTES = 10;
 
     private final String redisHost;
     private final Integer redisPort;
@@ -43,25 +48,31 @@ public class CacheConfiguration {
     }
 
     @Bean
-    ReactiveRedisTemplate<String, String> reactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory) {
-        return new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
+    public ReactiveRedisTemplate<String, ProjectDTO> reactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory) {
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        Jackson2JsonRedisSerializer<ProjectDTO> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, ProjectDTO.class);
+
+        RedisSerializationContext<String, ProjectDTO> context = RedisSerializationContext.<String, ProjectDTO>newSerializationContext()
+                .key(RedisSerializer.string())
+                .value(serializer)
+                .hashKey(RedisSerializer.string())
+                .hashValue(serializer)
+                .build();
+
+        return new ReactiveRedisTemplate<>(connectionFactory, context);
     }
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
+                .entryTtl(Duration.ofMinutes(CACHE_TTL_IN_MINUTES))
                 .disableCachingNullValues();
-
-        RedisCacheConfiguration commonCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .disableCachingNullValues();
-
-        Map<String, RedisCacheConfiguration> initialCacheConfigs =
-                Collections.singletonMap(PROJECT_ID_CACHE_KEY, commonCacheConfig);
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultCacheConfig)
-                .withInitialCacheConfigurations(initialCacheConfigs)
                 .transactionAware()
                 .build();
     }

@@ -22,14 +22,16 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.UUID.randomUUID;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProjectServiceTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private ProjectCacheService projectCacheService;
 
     @InjectMocks
     private ProjectService underTest;
@@ -39,7 +41,6 @@ class ProjectServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Set up sample project entities
         projectEntity1 = new ProjectEntity(randomUUID(), "Project 1", BigDecimal.ZERO, BigDecimal.ONE, AuditMetadata.empty(), 0L);
         projectEntity2 = new ProjectEntity(randomUUID(), "Project 2", BigDecimal.ONE, BigDecimal.TWO, AuditMetadata.empty(), 0L);
     }
@@ -48,7 +49,6 @@ class ProjectServiceTest {
     void testAddAll_Success() {
         // Given
         Iterable<ProjectEntity> projects = List.of(projectEntity1, projectEntity2);
-
         when(projectRepository.saveAll(projects)).thenReturn(Flux.just(projectEntity1, projectEntity2));
 
         // When
@@ -61,21 +61,6 @@ class ProjectServiceTest {
                 .verifyComplete();
 
         verify(projectRepository).saveAll(projects);
-    }
-
-    @Test
-    void testAddAll_EmptyCollection() {
-        // Given
-        Iterable<ProjectEntity> emptyProjects = Collections.emptyList();
-
-        // When
-        Flux<ProjectDTO> result = underTest.addAll(emptyProjects);
-
-        // Then
-        StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof InvalidProjectException
-                        && throwable.getMessage().equals("Project collection must not be empty or contain null elements."))
-                .verify();
     }
 
     @Test
@@ -94,11 +79,28 @@ class ProjectServiceTest {
     }
 
     @Test
-    void testFindById_ProjectFound() {
+    void testAddAll_EmptyCollection() {
+        // Given
+        Iterable<ProjectEntity> emptyProjects = Collections.emptyList();
+
+        // When
+        Flux<ProjectDTO> result = underTest.addAll(emptyProjects);
+
+        // Then
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof InvalidProjectException
+                        && throwable.getMessage().equals("Project collection must not be empty or contain null elements."))
+                .verify();
+    }
+
+    @Test
+    void testFindById_ShouldReturnProjectFromRepository_WhenNotInCache() {
         // Given
         String projectId = "1";
 
+        when(projectCacheService.getProjectFromCache(Mockito.anyString())).thenReturn(Mono.empty());
         when(projectRepository.findById(projectId)).thenReturn(Mono.just(projectEntity1));
+        when(projectCacheService.cacheProject(Mockito.anyString(), Mockito.any())).thenReturn(Mono.just(true));
 
         // When
         Mono<ProjectDTO> result = underTest.findById(projectId);
@@ -108,7 +110,9 @@ class ProjectServiceTest {
                 .expectNextMatches(projectDTO -> projectDTO.name().equals("Project 1"))
                 .verifyComplete();
 
+        Mockito.verify(projectCacheService).getProjectFromCache(projectId); // Attempt to read from cache (cache miss)
         Mockito.verify(projectRepository).findById(projectId);
+        Mockito.verify(projectCacheService).cacheProject(Mockito.anyString(), Mockito.any());
     }
 
     @Test
@@ -116,6 +120,7 @@ class ProjectServiceTest {
         // Given
         String projectId = "2";
 
+        when(projectCacheService.getProjectFromCache(Mockito.anyString())).thenReturn(Mono.empty());
         when(projectRepository.findById(projectId)).thenReturn(Mono.empty());
 
         // When
@@ -128,6 +133,46 @@ class ProjectServiceTest {
                 .verify();
 
         Mockito.verify(projectRepository).findById(projectId);
+        Mockito.verify(projectCacheService, Mockito.never()).cacheProject(Mockito.anyString(), Mockito.any()); // No caching attempt was involved
+    }
+
+    @Test
+    void testFindById_ShouldReturnCachedProject_WhenAvailable() {
+        // Given
+        String projectId = "1";
+
+        ProjectDTO project = ProjectDTO.fromEntity(projectEntity1);
+        when(projectCacheService.getProjectFromCache(projectId)).thenReturn(Mono.just(project));
+
+        // When
+        Mono<ProjectDTO> result = underTest.findById(projectId);
+
+        StepVerifier.create(result)
+                .expectNext(project)
+                .verifyComplete();
+
+        verify(projectRepository, never()).findById(Mockito.anyString()); // Read project from cache and call to db was never invoked
+    }
+
+    @Test
+    void testFindById_ShouldThrowProjectNotFoundException_WhenProjectNotFoundInRepository() {
+        // Given
+        String projectId = "2";
+        when(projectCacheService.getProjectFromCache(projectId)).thenReturn(Mono.empty());  // Cache miss
+        when(projectRepository.findById(projectId)).thenReturn(Mono.empty());  // Repository miss
+
+        // When
+        Mono<ProjectDTO> result = underTest.findById(projectId);
+
+        // Then
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof ProjectNotFoundException
+                        && throwable.getMessage().equals("Project not found for ID: 2"))
+                .verify();
+
+        verify(projectCacheService).getProjectFromCache(projectId);
+        verify(projectRepository).findById(projectId);
+        verify(projectCacheService, never()).cacheProject(Mockito.anyString(), Mockito.any()); // No caching was invoked
     }
 
     @Test
