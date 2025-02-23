@@ -94,7 +94,7 @@ public class ProjectCapitalOptimizerEventConsumer {
      * @return A Mono of the deserialized {@link CapitalMaximizationQueryEvent}.
      */
     private Mono<CapitalMaximizationQueryEvent> parseCapitalMaximizationJsonEvent(String jsonEvent) {
-        logger.debug("Attempting to deserialize JSON event: {}", jsonEvent);
+        logger.info("Attempting to deserialize JSON event: {}", jsonEvent);
 
         return Mono.fromCallable(() -> {
                     if (jsonEvent == null || jsonEvent.trim().isEmpty()) {

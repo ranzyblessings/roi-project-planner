@@ -32,7 +32,7 @@ public class ProjectsApiController {
         logger.info("Received request to create new projects");
 
         return requestFlux
-                .doOnNext(request -> logger.debug("Processing project: {}", request))
+                .doOnNext(request -> logger.info("Processing project: {}", request))
                 .map(this::toProjectEntity)
                 .collectList()
                 .flatMap(projects -> {
@@ -59,5 +59,36 @@ public class ProjectsApiController {
                             result.size(), response.getStatusCode(), response.getData());
                     return response;
                 });
+    }
+
+    // TODO: Implement pagination to avoid loading large datasets entirely into memory and improve scalability.
+    @GetMapping
+    public Mono<ApiResponse<List<ProjectDTO>>> listAllProjects() {
+        logger.info("Fetching all projects from the database...");
+
+        return projectService.findAll()
+                .collectList()
+                .doOnTerminate(() -> logger.info("Completed fetching all projects."))
+                .map(projects -> {
+                    logger.debug("Returning {} projects.", projects.size());
+                    return ApiResponse.success(HttpStatus.OK.value(), projects);
+                })
+                .doOnError(error -> logger.error("Error fetching all projects", error));
+    }
+
+    @GetMapping(value = "/{id}")
+    public Mono<ApiResponse<ProjectDTO>> listProjectById(@PathVariable String id) {
+        logger.info("Fetching project with ID: {}", id);
+
+        return projectService.findById(id)
+                .map(project -> {
+                    logger.debug("Found project with ID: {}", id);
+                    return ApiResponse.success(HttpStatus.OK.value(), project);
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    logger.warn("Project with ID '{}' not found.", id);
+                    return Mono.just(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "Project not found for ID: %s".formatted(id)));
+                }))
+                .doOnError(error -> logger.error("Error fetching project with ID '{}'", id, error));
     }
 }

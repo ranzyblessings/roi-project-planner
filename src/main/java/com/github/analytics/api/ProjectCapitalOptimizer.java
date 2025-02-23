@@ -61,7 +61,7 @@ public class ProjectCapitalOptimizer {
 
         // Sort projects by required capital in ascending order.
         projects.sort(Comparator.comparing(ProjectDTO::requiredCapital));
-        logger.debug("Projects sorted by required capital.");
+        logger.info("Projects sorted by required capital.");
 
         // Max-heap (priority queue) to track the most profitable affordable projects.
         PriorityQueue<ProjectDTO> profitMaxHeap = new PriorityQueue<>(Comparator.comparing(ProjectDTO::profit).reversed());
@@ -72,13 +72,13 @@ public class ProjectCapitalOptimizer {
 
         // Iteratively select up to maxProjects.
         for (int i = 0; i < query.maxProjects(); i++) {
-            logger.debug("Iteration {}: Current capital: {}", i + 1, currentCapital);
+            logger.info("Iteration {}: Current capital: {}", i + 1, currentCapital);
 
             // Add all affordable projects to the max-heap.
             while (projectIndex < totalProjects && projects.get(projectIndex).requiredCapital().compareTo(currentCapital) <= 0) {
                 ProjectDTO project = projects.get(projectIndex);
                 profitMaxHeap.offer(project);
-                logger.debug("Added project {} to heap (Required: {}, Profit: {}).",
+                logger.info("Added project {} to heap (Required: {}, Profit: {}).",
                         project.name(), project.requiredCapital(), project.profit());
                 projectIndex++;
             }

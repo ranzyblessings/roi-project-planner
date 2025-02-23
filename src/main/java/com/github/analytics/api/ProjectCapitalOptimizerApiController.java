@@ -29,7 +29,7 @@ public class ProjectCapitalOptimizerApiController {
 
         return requestMono
                 .flatMap(request -> {
-                    logger.debug("Project capital optimizer request: {}", request);
+                    logger.info("Project capital optimizer request: {}", request);
 
                     var event = new CapitalMaximizationQueryEvent(request.maxProjects(), request.initialCapital());
                     return projectCapitalOptimizerEventPublisher.publishEvent(event);

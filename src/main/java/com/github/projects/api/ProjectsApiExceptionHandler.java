@@ -50,8 +50,8 @@ public class ProjectsApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Mono<ResponseEntity<ApiResponse<String>>> handleGenericException(Exception e) {
-        logger.error("Unexpected error occurred", e);
+        logger.error("An unexpected error occurred", e);
         var response = ApiResponse.<String>error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response));
+        return Mono.just(ResponseEntity.internalServerError().body(response));
     }
 }

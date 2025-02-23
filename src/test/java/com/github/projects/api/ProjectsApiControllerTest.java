@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -98,5 +99,66 @@ class ProjectsApiControllerTest {
                 .expectBody()
                 .jsonPath("$.statusCode").isEqualTo(400)
                 .jsonPath("$.message").exists(); // Validation error messages should be returned
+    }
+
+    @Test
+    void testListAllProjects_Success() {
+        // Given
+        var projectDTO1 = new ProjectDTO(randomUUID(), "Project 1", new BigDecimal("100.00"), new BigDecimal("500.00"), AuditMetadata.empty(), 0L);
+        var projectDTO2 = new ProjectDTO(randomUUID(), "Project 2", new BigDecimal("150.00"), new BigDecimal("800.00"), AuditMetadata.empty(), 0L);
+
+        when(projectService.findAll()).thenReturn(Flux.just(projectDTO1, projectDTO2));
+
+        // When & Then
+        webTestClient.get()
+                .uri("/api/v1/projects")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(200)
+                .jsonPath("$.data.length()").isEqualTo(2)
+                .jsonPath("$.data[0].id").isNotEmpty()
+                .jsonPath("$.data[0].name").isEqualTo("Project 1")
+                .jsonPath("$.data[0].requiredCapital").isEqualTo(100.00)
+                .jsonPath("$.data[1].id").isNotEmpty()
+                .jsonPath("$.data[1].name").isEqualTo("Project 2")
+                .jsonPath("$.data[1].requiredCapital").isEqualTo(150.00);
+    }
+
+    @Test
+    void testListProjectById_Success() {
+        // Given
+        var projectDTO = new ProjectDTO(randomUUID(), "Project 1", new BigDecimal("100.00"), new BigDecimal("500.00"), AuditMetadata.empty(), 0L);
+        String projectId = projectDTO.id().toString();
+
+        when(projectService.findById(projectId)).thenReturn(Mono.just(projectDTO));
+
+        // When & Then
+        webTestClient.get()
+                .uri("/api/v1/projects/{id}", projectId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(200)
+                .jsonPath("$.data.id").isNotEmpty()
+                .jsonPath("$.data.name").isEqualTo("Project 1")
+                .jsonPath("$.data.requiredCapital").isEqualTo(100.00);
+    }
+
+    @Test
+    void testListProjectById_NotFound() {
+        // Given
+        String projectId = "non-existing-id";
+
+        when(projectService.findById(projectId)).thenReturn(Mono.empty());
+
+        // When & Then
+        webTestClient.get()
+                .uri("/api/v1/projects/{id}", projectId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.statusCode").isEqualTo(404)
+                .jsonPath("$.message").isEqualTo("Project not found for ID: non-existing-id");
     }
 }
