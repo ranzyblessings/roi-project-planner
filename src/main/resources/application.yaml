@@ -14,6 +14,11 @@ spring:
       host: localhost
       port: 6379
 
+  kafka:
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.value.default.type: com.github.analytics.event.CapitalMaximizationQueryEvent
   cloud:
     stream:
       kafka:

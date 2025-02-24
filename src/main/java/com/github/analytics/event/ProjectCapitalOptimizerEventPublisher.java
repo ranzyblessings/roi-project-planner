@@ -3,6 +3,7 @@ package com.github.analytics.event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import static com.github.projects.model.Validators.requireNonNull;
 @Component
 public class ProjectCapitalOptimizerEventPublisher {
     private static final Logger logger = LoggerFactory.getLogger(ProjectCapitalOptimizerEventPublisher.class);
+    private static final String CONTENT_TYPE_HEADER = "contentType";
     private static final String PARTITION_KEY_HEADER = "PARTITION_KEY";
     private static final String CAPITAL_MAXIMIZATION_QUERY_TOPIC_OUT_BINDING = "capital-maximization-query-out-0";
 
@@ -42,6 +44,7 @@ public class ProjectCapitalOptimizerEventPublisher {
                     // Build the message with event payload and computed partition key
                     Message<CapitalMaximizationQueryEvent> message = MessageBuilder.withPayload(event)
                             .setHeader(PARTITION_KEY_HEADER, partitionKey)
+                            .setHeader(CONTENT_TYPE_HEADER, MediaType.APPLICATION_JSON_VALUE)
                             .build();
 
                     // Send the message and check if it was successful

@@ -1,10 +1,10 @@
 package com.github.analytics.event;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.analytics.api.CapitalMaximizationQuery;
 import com.github.analytics.api.ProjectCapitalOptimized;
 import com.github.analytics.api.ProjectCapitalOptimizer;
 import com.github.projects.api.ProjectService;
+import com.github.projects.exception.ProjectNotFoundException;
 import com.github.projects.model.AuditMetadata;
 import com.github.projects.model.ProjectDTO;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,8 @@ class ProjectCapitalOptimizerEventConsumerTest {
     @InjectMocks
     private ProjectCapitalOptimizerEventConsumer underTest;
 
-    private static final String VALID_JSON_EVENT = "{\"maxProjects\": 2, \"initialCapital\": \"100.00\"}";
+    private static final CapitalMaximizationQueryEvent EVENT =
+            new CapitalMaximizationQueryEvent(2, new BigDecimal("100"));
 
     @Test
     void shouldProcessCapitalMaximizationEventSuccessfully() {
@@ -47,7 +48,7 @@ class ProjectCapitalOptimizerEventConsumerTest {
         when(projectCapitalOptimizer.maximizeCapital(any(CapitalMaximizationQuery.class))).thenReturn(Mono.just(optimized));
 
         // When
-        Mono<ProjectCapitalOptimized> result = underTest.processCapitalMaximizationEvent(VALID_JSON_EVENT);
+        Mono<ProjectCapitalOptimized> result = underTest.processCapitalMaximizationEvent(EVENT);
 
         // Then
         StepVerifier.create(result)
@@ -62,41 +63,22 @@ class ProjectCapitalOptimizerEventConsumerTest {
     }
 
     @Test
-    void shouldThrowErrorWhenNoProjectsFound() throws JsonProcessingException {
+    void shouldThrowErrorWhenNoProjectsFound() {
         // Given
         when(projectService.findAll()).thenReturn(Flux.empty());
 
         // When
-        Mono<ProjectCapitalOptimized> result = underTest.processCapitalMaximizationEvent(VALID_JSON_EVENT);
+        Mono<ProjectCapitalOptimized> result = underTest.processCapitalMaximizationEvent(EVENT);
 
         // Then
         StepVerifier.create(result)
                 .expectErrorSatisfies(ex -> {
-                    assertThat(ex).isInstanceOf(IllegalStateException.class);
+                    assertThat(ex).isInstanceOf(ProjectNotFoundException.class);
                     assertThat(ex.getMessage()).contains("No projects available for capital maximization.");
                 })
                 .verify();
 
         verify(projectService, times(1)).findAll();
         verifyNoMoreInteractions(projectService, projectCapitalOptimizer);
-    }
-
-    @Test
-    void shouldThrowErrorWhenJsonDeserializationFails() {
-        // Given
-        String invalidJson = "INVALID_JSON";
-
-        // When
-        Mono<ProjectCapitalOptimized> result = underTest.processCapitalMaximizationEvent(invalidJson);
-
-        // Then
-        StepVerifier.create(result)
-                .expectErrorSatisfies(ex -> {
-                    assertThat(ex).isInstanceOf(IllegalArgumentException.class);
-                    assertThat(ex.getMessage()).contains("Invalid JSON format");
-                })
-                .verify();
-
-        verifyNoInteractions(projectService, projectCapitalOptimizer);
     }
 }
