@@ -51,7 +51,7 @@ class ProjectCapitalOptimizerApiControllerTest {
                 .expectStatus().isAccepted()
                 .expectBody()
                 .jsonPath("$.statusCode").isEqualTo(HttpStatus.ACCEPTED.value())
-                .jsonPath("$.data").isEqualTo("Capital Maximization Query event accepted for processing");
+                .jsonPath("$.data").isEqualTo("Capital maximization query event accepted for processing");
 
         verify(projectCapitalOptimizerEventPublisher, times(1))
                 .publishEvent(argThat(event ->

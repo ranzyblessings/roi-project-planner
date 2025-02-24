@@ -2,11 +2,10 @@
 
 ## Overview
 
-**ROI Project Planner** is an open-source tool designed to maximize capital by selecting up to *k* distinct projects
-from a pool of available projects. Leveraging greedy algorithms, advanced data structures, and best practices in
-software engineering, this solution is inspired by real-world venture capital and investment strategies. It not only
-demonstrates expertise in data structures, algorithms, design patterns, and SOLID principles but also integrates modern
-cloud-native patterns including reactive programming, fault tolerance, and event-driven architectures.
+**ROI Project Planner** is an open-source tool designed to optimize capital allocation by selecting up to `k` distinct
+projects from a pool of available options. It demonstrates a broad range of skills, showcasing expertise in advanced
+data structures, algorithms, SOLID principles, and software engineering best practices. Additionally, it integrates
+modern cloud-native patterns, including reactive programming, fault tolerance, and event-driven architectures.
 
 [![Build, Test, Dockerize, and Deploy to Docker Hub](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-test-dockerize-deploy.yml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-test-dockerize-deploy.yml)
 
@@ -132,8 +131,7 @@ For now, to **view selected projects and capital maximization**, use Grafana as 
 in [Observability Setup for Local Development](#observability-setup-for-local-development) under the
 **Log Monitoring** section, or check the console logs.
 
-_In the future, advanced analytics and graphical representations will be added, with support for custom views that
-consumers can subscribe to for tailored visualizations._
+_We're currently working on adding an advanced analytics and graphical representations user interface._
 
 ### List all projects
 
@@ -156,8 +154,8 @@ curl http://localhost:8080/api/v1/projects/{ID}
 
 ## Observability Setup for Local Development
 
-_**Note:** On Mac or Windows, set the `targets` in **observability/prom-config.yaml**
-to: `- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP address._
+**Note:** On Mac or Windows, set the `targets` in _observability/prom-config.yaml_ to
+`- targets: ['host.docker.internal:8080']`. On Linux, use the host's IP address instead.
 
 1. **Start Observability Services**
     ```bash

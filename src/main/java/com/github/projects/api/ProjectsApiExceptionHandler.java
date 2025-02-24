@@ -1,5 +1,6 @@
 package com.github.projects.api;
 
+import com.github.projects.exception.ProjectNotFoundException;
 import com.github.projects.exception.TooManyProjectsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ public class ProjectsApiExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(ProjectsApiExceptionHandler.class);
 
     /**
-     * Handles validation errors from request binding, returning structured error messages.
+     * Handles request validation errors and returns structured error messages.
      */
     @ExceptionHandler(WebExchangeBindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -35,7 +36,7 @@ public class ProjectsApiExceptionHandler {
     }
 
     /**
-     * Handles business logic errors when exceeding the allowed number of project creations.
+     * Handles exceptions for exceeding the allowed project creation limit.
      */
     @ExceptionHandler(TooManyProjectsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -45,7 +46,17 @@ public class ProjectsApiExceptionHandler {
     }
 
     /**
-     * Handles unexpected system errors, ensuring internal server errors are logged and returned in a structured format.
+     * Handles exceptions when a project with the given ID is not found.
+     */
+    @ExceptionHandler(ProjectNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<ResponseEntity<ApiResponse<String>>> handleProjectNotFoundException(ProjectNotFoundException e) {
+        var response = ApiResponse.<String>error(HttpStatus.NOT_FOUND.value(), e.getMessage());
+        return Mono.just(ResponseEntity.badRequest().body(response));
+    }
+
+    /**
+     * Handles unexpected system errors by logging and returning a structured response.
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

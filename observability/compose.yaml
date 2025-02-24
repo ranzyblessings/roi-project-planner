@@ -7,7 +7,7 @@ services:
       - '3100:3100'
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-      - observability-network
+      - dev-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "wget", "-qO-", "http://localhost:3100/metrics" ]
@@ -23,7 +23,7 @@ services:
       - ./config.alloy:/etc/alloy/config.alloy
       - ../logs/application.log:/var/log/application.log
     networks:
-      - observability-network
+      - dev-network
     restart: unless-stopped
     depends_on:
       loki:
@@ -37,7 +37,7 @@ services:
     volumes:
       - ./prom-config.yaml:/etc/prometheus/prometheus.yml
     networks:
-      - observability-network
+      - dev-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "wget", "-qO-", "http://localhost:9090/metrics" ]
@@ -52,7 +52,7 @@ services:
     ports:
       - '3000:3000'
     networks:
-      - observability-network
+      - dev-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000/api/health" ]
@@ -71,7 +71,7 @@ services:
       - '9411:9411'   # Zipkin API
       - '16686:16686' # Jaeger UI
     networks:
-      - observability-network
+      - dev-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "wget", "-qO-", "http://localhost:16686" ]
@@ -81,4 +81,4 @@ services:
       start_period: 5s
 
 networks:
-  observability-network:
+  dev-network:
