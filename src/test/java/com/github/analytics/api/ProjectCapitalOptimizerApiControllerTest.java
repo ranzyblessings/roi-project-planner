@@ -31,7 +31,7 @@ class ProjectCapitalOptimizerApiControllerTest {
         this.webTestClient = webTestClient;
     }
 
-    private static final String API_ENDPOINT = "/api/v1/capital/maximization/query";
+    private static final String API_ENDPOINT = "/api/v1/capital/maximization";
 
     @Test
     void shouldAcceptCapitalMaximizationQueryEvent_WhenRequestIsValid() {

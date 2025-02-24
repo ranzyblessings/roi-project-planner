@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping(value = "/api/v1/capital/maximization/query")
+@RequestMapping(value = "/api/v1/capital/maximization")
 public class ProjectCapitalOptimizerApiController {
     private static final Logger logger = LoggerFactory.getLogger(ProjectCapitalOptimizerApiController.class);
 
