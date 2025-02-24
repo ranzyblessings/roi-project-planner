@@ -119,7 +119,7 @@ To **maximize capital** by selecting up to _k_ distinct projects from a pool of 
 request:
 
  ```bash
- curl -X POST http://localhost:8080/api/v1/capital/maximization/query \
+ curl -X POST http://localhost:8080/api/v1/capital/maximization \
       -H "Content-Type: application/json" \
       -d '{
            "maxProjects":2,
@@ -127,11 +127,11 @@ request:
          }'
  ```
 
-For now, to **view selected projects and capital maximization**, use Grafana as outlined
-in [Observability Setup for Local Development](#observability-setup-for-local-development) under the
-**Log Monitoring** section, or check the console logs.
+To **view selected projects and capital maximization** after receiving a Kafka event, refer to Grafana as described
+in the [Setup for Local Development (Log Monitoring section)](#observability-setup-for-local-development), or check the
+console logs.
 
-_We're currently working on adding an advanced analytics and graphical representations user interface._
+_We're currently developing an advanced analytics and graphical representation user interface._
 
 ### List all projects
 
