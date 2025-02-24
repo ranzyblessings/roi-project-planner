@@ -38,7 +38,7 @@ public abstract class TestcontainersConfiguration {
                     "CREATE KEYSPACE IF NOT EXISTS roi_project_planner WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};"
             );
         } catch (Exception e) {
-            logger.error("{}", e.getMessage());
+            logger.error("Encountered an error while creating keyspace in cassandra", e);
             Assertions.fail(String.format("Keyspace creation failed: %s", e.getMessage()));
         }
     }

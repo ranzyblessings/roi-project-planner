@@ -52,7 +52,7 @@ public class ProjectCapitalOptimizerEventConsumer {
 
         processCapitalMaximizationEvent(event)
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2))) // Retry transient failures
-                .doOnError(error -> logger.error("Final failure processing event: {}", error, error))
+                .doOnError(error -> logger.error("Final failure processing event", error))
                 .onErrorResume(error -> Mono.empty()) // Avoid infinite Kafka retries
                 .subscribe(result -> logger.info("Processing completed. Final capital: {}, Selected projects: {}",
                         result.finalCapital(), result.selectedProjects().size())

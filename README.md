@@ -230,12 +230,12 @@ Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) f
 
 ## Deployment
 
-To deploy the ROI Project Planner in production, we use **Terraform** to provision a secure **EKS cluster** with managed
-dependencies, including Kafka, Cassandra, and Redis. The setup includes a dedicated VPC, high-availability subnets,
-security groups, and persistent storage with Amazon EBS volumes. Argo CD enables GitOps for CI/CD, while Prometheus,
-Grafana, and Jaeger handle metrics, monitoring, and distributed tracing. We enforce IAM roles for access control,
-implement SSL/TLS encryption, and configure auto-scaling for resilience. Additionally, log files are stored in Amazon S3
-for long-term retention and easy access.
+To deploy the **ROI Project Planner** in production, we use **Terraform** to provision a secure **EKS cluster** with
+managed dependencies, including Kafka, Cassandra, and Redis. The setup includes a dedicated VPC, high-availability
+subnets, security groups, and persistent storage with Amazon EBS volumes. Argo CD enables GitOps for CI/CD, while
+Prometheus, Grafana, and Jaeger handle metrics, monitoring, and distributed tracing. We enforce IAM roles for access
+control, implement SSL/TLS encryption, and configure auto-scaling for resilience. Additionally, log files are stored in
+Amazon S3 for long-term retention and easy access.
 
 _(Terraform project link will be available soon.)_
 
