@@ -7,7 +7,8 @@ projects from a pool of available options. It demonstrates a broad range of skil
 data structures, algorithms, SOLID principles, and software engineering best practices. Additionally, it integrates
 modern cloud-native patterns, including reactive programming, fault tolerance, and event-driven architectures.
 
-[![Build, Test, Dockerize, and Deploy to Docker Hub](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-test-dockerize-deploy.yml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-test-dockerize-deploy.yml)
+[![Build and Test Application](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-and-test.yaml)
+[![Deploy Docker Image](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/deploy-docker-image.yaml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/deploy-docker-image.yaml)
 
 ## Table of Contents
 
