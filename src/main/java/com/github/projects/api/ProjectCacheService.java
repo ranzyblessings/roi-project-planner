@@ -33,7 +33,7 @@ public class ProjectCacheService {
         return valueOps.set(cacheKey, project)
                 .doOnTerminate(() -> logger.info("Caching completed for project ID '{}'.", cacheKey))
                 .onErrorResume(error -> {
-                    logger.error("Error caching project with ID '{}': {}", cacheKey, error.getMessage());
+                    logger.error("Error caching project with ID '{}'", cacheKey, error);
                     return Mono.empty();
                 });
     }
@@ -67,7 +67,7 @@ public class ProjectCacheService {
         return valueOps.delete(cacheKey)
                 .doOnTerminate(() -> logger.info("Cache eviction completed for ID '{}'.", cacheKey))
                 .onErrorResume(error -> {
-                    logger.error("Error evicting project with ID '{}': {}", cacheKey, error.getMessage());
+                    logger.error("Error evicting project with ID '{}'", cacheKey, error);
                     return Mono.just(false); // Returning false if eviction fails
                 });
     }

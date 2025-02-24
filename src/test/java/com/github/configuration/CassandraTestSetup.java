@@ -25,7 +25,7 @@ public class CassandraTestSetup {
         reactiveCassandraOperations.getReactiveCqlOperations()
                 .execute(SimpleStatement.newInstance(cql))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500))) // Retry up to 3 times with 500 ms delay
-                .doOnError(e -> logger.error("CQL execution failed: {}", e.getMessage())) // Log error on failure
+                .doOnError(e -> logger.error("CQL execution failed", e)) // Log error on failure
                 .block(); // Wait for completion
     }
 
