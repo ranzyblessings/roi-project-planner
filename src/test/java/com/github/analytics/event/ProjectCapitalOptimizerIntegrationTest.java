@@ -64,8 +64,7 @@ class ProjectCapitalOptimizerIntegrationTest extends TestcontainersConfiguration
         // Then: Ensure consumer processes the event and invokes expected methods
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(projectService, times(1)).findAll();
-            verify(projectCapitalOptimizer, times(1))
-                    .maximizeCapital(any(CapitalMaximizationQuery.class));
+            verify(projectCapitalOptimizer, times(1)).maximizeCapital(any(CapitalMaximizationQuery.class));
         });
     }
 }
