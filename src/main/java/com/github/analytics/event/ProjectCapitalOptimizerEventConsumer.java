@@ -102,7 +102,7 @@ public class ProjectCapitalOptimizerEventConsumer {
                 .collect(Collectors.joining(","));
 
         // Create a Gauge with dynamic labels
-        Gauge.builder("roi.final_capital_with_projects", result::finalCapital) // roi_final_capital_with_projects
+        Gauge.builder("roi.final_capital_with_projects", result::finalCapital)
                 .description("The final maximized capital with selected projects")
                 .tag("selected_projects", selectedProjects)
                 .register(meterRegistry);
