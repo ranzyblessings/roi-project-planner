@@ -128,11 +128,9 @@ request:
          }'
  ```
 
-To **view selected projects and capital maximization** after receiving a Kafka event, refer to Grafana as described
-in the [Setup for Local Development (Log Monitoring section)](#observability-setup-for-local-development), or check the
-console logs.
-
-_We're currently developing an advanced analytics and graphical representation user interface._
+To **view the selected projects and capital maximization results** after receiving a Kafka event, refer to **Grafana**
+as described in the [Setup for Local Development (Metrics Monitoring)](#observability-setup-for-local-development)
+section. Select the **metric** `roi_final_capital_with_projects`, and for **label filters**, choose `selected_projects`.
 
 ### List all projects
 
