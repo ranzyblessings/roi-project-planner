@@ -5,6 +5,7 @@ import com.github.analytics.api.ProjectCapitalOptimized;
 import com.github.analytics.api.ProjectCapitalOptimizer;
 import com.github.projects.api.ProjectService;
 import com.github.projects.exception.ProjectNotFoundException;
+import com.github.projects.model.ProjectDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -55,7 +56,7 @@ public class ProjectCapitalOptimizerEventConsumer {
                 .doOnError(error -> logger.error("Final failure processing event", error))
                 .onErrorResume(error -> Mono.empty()) // Avoid infinite Kafka retries
                 .subscribe(result -> logger.info("Processing completed. Final capital: {}, Selected projects: {}",
-                        result.finalCapital(), result.selectedProjects().size())
+                        result.finalCapital(), result.selectedProjects().stream().map(ProjectDTO::name).toList())
                 );
     }
 

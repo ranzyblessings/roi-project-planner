@@ -2,7 +2,7 @@
 
 ## Overview
 
-**ROI Project Planner** is an open-source tool designed to optimize capital allocation by selecting up to `k` distinct
+**ROI Project Planner** is an open-source tool designed to optimize capital allocation by selecting up to _k_ distinct
 projects from a pool of available options. It demonstrates a broad range of skills, showcasing expertise in advanced
 data structures, algorithms, SOLID principles, and software engineering best practices. Additionally, it integrates
 modern cloud-native patterns, including reactive programming, fault tolerance, and event-driven architectures.
@@ -220,6 +220,8 @@ efficient troubleshooting.
 3. **LogQL Queries for Analysis**
     - `rate({job="roi-project-planner-logs"} |~ "statusCode=201" | json [30m])` - rate of successful requests (status
       code 201) over the last 30 minutes.
+    - `rate({job="roi-project-planner-logs"} |~ "Final capital" | json [30m])` - rate of successful Capital maximization
+      query events.
     - `rate({job="roi-project-planner-logs"} [1m])` - Track High Log Volume (Spike Detection).
     - `rate({job="roi-project-planner-logs"} | json | level="ERROR" [5m])` - Measure Log Rate per Log Level (eg,
       `ERROR`, `INFO`, `WARN`).
