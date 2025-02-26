@@ -35,6 +35,7 @@ public class ProjectCapitalOptimizerApiController {
                     return projectCapitalOptimizerEventPublisher.publishEvent(event);
                 })
                 .thenReturn(ApiResponse.success(HttpStatus.ACCEPTED.value(), "Capital maximization query event accepted for processing"))
+                .doOnNext(response -> logger.info("Successfully published capital maximization query event {}", response))
                 .doOnError(error -> logger.error("Error publishing Capital Maximization Query event", error));
     }
 }

@@ -1,6 +1,5 @@
 package com.github.projects.api;
 
-import com.github.configuration.CacheConfiguration;
 import com.github.projects.model.ProjectDTO;
 import com.github.projects.model.Validators;
 import org.slf4j.Logger;
@@ -9,6 +8,8 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import static com.github.configuration.CacheConfiguration.PROJECT_ID_CACHE_KEY;
 
 @Service
 public class ProjectCacheService {
@@ -73,6 +74,6 @@ public class ProjectCacheService {
     }
 
     private String createCacheKey(final String projectId) {
-        return "%s:%s".formatted(CacheConfiguration.PROJECT_ID_CACHE_KEY, projectId);
+        return "%s:%s".formatted(PROJECT_ID_CACHE_KEY, projectId);
     }
 }
