@@ -6,6 +6,8 @@ import com.github.analytics.api.ProjectCapitalOptimizer;
 import com.github.projects.api.ProjectService;
 import com.github.projects.exception.ProjectNotFoundException;
 import com.github.projects.model.ProjectDTO;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,6 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.stream.Collectors;
 
 import static com.github.configuration.KafkaConfiguration.CAPITAL_MAXIMIZATION_QUERY_TOPIC;
 
@@ -29,10 +32,15 @@ import static com.github.configuration.KafkaConfiguration.CAPITAL_MAXIMIZATION_Q
 public class ProjectCapitalOptimizerEventConsumer {
     private static final Logger logger = LoggerFactory.getLogger(ProjectCapitalOptimizerEventConsumer.class);
 
+    private final MeterRegistry meterRegistry;
     private final ProjectService projectService;
     private final ProjectCapitalOptimizer projectCapitalOptimizer;
 
-    public ProjectCapitalOptimizerEventConsumer(ProjectService projectService, ProjectCapitalOptimizer projectCapitalOptimizer) {
+    public ProjectCapitalOptimizerEventConsumer(
+            MeterRegistry meterRegistry,
+            ProjectService projectService,
+            ProjectCapitalOptimizer projectCapitalOptimizer) {
+        this.meterRegistry = meterRegistry;
         this.projectService = projectService;
         this.projectCapitalOptimizer = projectCapitalOptimizer;
     }
@@ -55,8 +63,13 @@ public class ProjectCapitalOptimizerEventConsumer {
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2))) // Retry transient failures
                 .doOnError(error -> logger.error("Final failure processing event", error))
                 .onErrorResume(error -> Mono.empty()) // Avoid infinite Kafka retries
-                .subscribe(result -> logger.info("Processing completed. Final capital: {}, Selected projects: {}",
-                        result.finalCapital(), result.selectedProjects().stream().map(ProjectDTO::name).toList())
+                .subscribe(result -> {
+
+                            logger.info("Processing completed. Final capital: {}, Selected projects: {}",
+                                    result.finalCapital(), result.selectedProjects().stream().map(ProjectDTO::name).toList());
+
+                            recordCapitalMaximizedPrometheusMetrics(result);
+                        }
                 );
     }
 
@@ -73,7 +86,25 @@ public class ProjectCapitalOptimizerEventConsumer {
 
                     var query = new CapitalMaximizationQuery(projects, event.maxProjects(), event.initialCapital());
                     return projectCapitalOptimizer.maximizeCapital(query);
+
                 })
                 .doOnError(error -> logger.error("Error during capital maximization process", error));
+    }
+
+    private void recordCapitalMaximizedPrometheusMetrics(ProjectCapitalOptimized result) {
+        if (result == null) {
+            logger.warn("ProjectCapitalOptimized is null.");
+            return;
+        }
+
+        String selectedProjects = result.selectedProjects().stream()
+                .map(ProjectDTO::name)
+                .collect(Collectors.joining(","));
+
+        // Create a Gauge with dynamic labels
+        Gauge.builder("roi.final_capital_with_projects", result::finalCapital)
+                .description("The final maximized capital with selected projects")
+                .tag("selected_projects", selectedProjects)
+                .register(meterRegistry);
     }
 }
