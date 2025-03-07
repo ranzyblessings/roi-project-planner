@@ -26,7 +26,7 @@ multipass version
 ### Create 3 VMs
 
 ```bash
-multipass launch -n node1 -c 2 -m 2G -d 10G --cloud-init - <<EOF
+multipass launch -n node1 -c 4 -m 4G -d 10G --cloud-init - <<EOF
 #cloud-config
 package_update: true
 packages:
@@ -36,7 +36,7 @@ packages:
   - software-properties-common
 EOF
 
-multipass launch -n node2 -c 2 -m 2G -d 10G --cloud-init - <<EOF
+multipass launch -n node2 -c 4 -m 4G -d 10G --cloud-init - <<EOF
 #cloud-config
 package_update: true
 packages:
@@ -46,7 +46,7 @@ packages:
   - software-properties-common
 EOF
 
-multipass launch -n node3 -c 2 -m 2G -d 10G --cloud-init - <<EOF
+multipass launch -n node3 -c 4 -m 4G -d 10G --cloud-init - <<EOF
 #cloud-config
 package_update: true
 packages:
@@ -57,7 +57,8 @@ packages:
 EOF
 ```
 
-**Note:** If a VM fails to start, check its status with multipass list and ensure your system has sufficient resources.
+**Note:** If a VM fails to start, check its status with `multipass list` and ensure your system has sufficient
+resources.
 
 ### Install MicroK8s on Each VM
 

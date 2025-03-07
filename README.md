@@ -15,9 +15,9 @@ such as reactive programming, fault tolerance, and event-driven architectures.
 
 - [Features](#features)
 - [Installation](#installation)
+- [Deployment](#deployment)
 - [API Usage](#api-usage)
 - [Observability](#observability-setup-for-local-development)
-- [Deployment](#deployment)
 - [How To Contribute](#how-to-contribute)
 - [License](#license)
 
@@ -81,6 +81,58 @@ To run the project locally using Docker, follow these steps:
    ```bash
     ./gradlew clean bootRun
     ```
+
+---
+
+## Deployment
+
+To deploy the **ROI Project Planner** in production, we use **Terraform** to provision a secure **EKS cluster** with
+managed dependencies, including Kafka, Cassandra, and Redis. The setup includes a dedicated VPC, high-availability
+subnets, security groups, and persistent storage with Amazon EBS volumes. Argo CD enables GitOps for CI/CD, while
+Prometheus, Grafana, and Jaeger handle metrics, monitoring, and distributed tracing. We enforce IAM roles for access
+control, implement SSL/TLS encryption, and configure auto-scaling for resilience. Additionally, log files are stored in
+Amazon S3 for long-term retention and easy access.
+
+### Local Deployment
+
+For local development and testing, you can set up a **multi-node Kubernetes** cluster using **Multipass** and
+**MicroK8s**. Follow the detailed instructions in [K8s-MultiNode-Dev-Setup.md](./K8s-MultiNode-Dev-Setup.md) to
+configure your environment.
+
+```bash
+# Create namespace
+kubectl apply -f kubernetes/namespace.yaml 
+
+# Create MicroK8s storage (use preferred storage for non-MicroK8s setups)
+kubectl apply -f kubernetes/microks-storage.yaml
+
+# Deploy 3 Apache Cassandra database nodes in a multi-node cluster
+kubectl apply -f kubernetes/cassandra-statefulset.yaml
+
+# Deploy Redis and Its Secret
+
+# First, generate the Redis password. For example:
+echo -n "secret" | base64
+
+# Second, create and deploy redis-secrets.yaml:
+echo "apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-secrets
+  namespace: roi-project-planner-dev
+type: Opaque
+data:
+  password: c2VjcmV0" > kubernetes/redis-secrets.yaml
+kubectl apply -f kubernetes/redis-secrets.yaml
+
+# Finally, deploy the Redis database:
+kubectl apply -f kubernetes/redis-deployment.yaml
+
+```
+
+### AWS EKS Deployment
+
+_(Terraform project link will be available soon.)_
 
 ---
 
@@ -226,27 +278,6 @@ efficient troubleshooting.
       `ERROR`, `INFO`, `WARN`).
 
 Refer to the [LogQL documentation](https://grafana.com/docs/loki/latest/query) for advanced queries.
-
----
-
-## Deployment
-
-To deploy the **ROI Project Planner** in production, we use **Terraform** to provision a secure **EKS cluster** with
-managed dependencies, including Kafka, Cassandra, and Redis. The setup includes a dedicated VPC, high-availability
-subnets, security groups, and persistent storage with Amazon EBS volumes. Argo CD enables GitOps for CI/CD, while
-Prometheus, Grafana, and Jaeger handle metrics, monitoring, and distributed tracing. We enforce IAM roles for access
-control, implement SSL/TLS encryption, and configure auto-scaling for resilience. Additionally, log files are stored in
-Amazon S3 for long-term retention and easy access.
-
-### Local Deployment
-
-For local development and testing, you can set up a **multi-node Kubernetes** cluster using **Multipass** and
-**MicroK8s**. Follow the detailed instructions in [K8s-MultiNode-Dev-Setup.md](./K8s-MultiNode-Dev-Setup.md) to
-configure your environment.
-
-### AWS EKS Deployment
-
-_(Terraform project link will be available soon.)_
 
 ---
 
