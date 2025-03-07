@@ -1,0 +1,9 @@
+# Storage configuration for application testing in a MicroK8s cluster
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard
+provisioner: microk8s.io/hostpath
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
