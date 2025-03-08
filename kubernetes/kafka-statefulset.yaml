@@ -1,0 +1,148 @@
+# Headless Service for Kafka bootstrap and inter-broker communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-bootstrap
+  namespace: roi-project-planner-dev
+  labels:
+    app: kafka
+spec:
+  ports:
+    - port: 9092
+      name: kafka
+      targetPort: 9092
+    - port: 9093
+      name: controller
+      targetPort: 9093
+  clusterIP: None  # Headless for StatefulSet
+  selector:
+    app: kafka
+
+---
+
+# StatefulSet for Kafka brokers in KRaft mode
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-broker
+  namespace: roi-project-planner-dev
+  labels:
+    app: kafka
+spec:
+  serviceName: kafka-bootstrap
+  replicas: 3  # 3 brokers for HA and quorum
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      # Anti-affinity to spread brokers across nodes
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: [ "kafka" ]
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: kafka
+          image: apache/kafka:3.9.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9092
+              name: kafka
+            - containerPort: 9093
+              name: controller
+          env:
+            # KRaft-specific configuration
+            - name: KAFKA_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name  # Use pod ordinal as node ID (0, 1, 2)
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"  # Combined roles for simplicity
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka-broker-$(KAFKA_NODE_ID).kafka-bootstrap.kafka.svc.cluster.local:9092"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "0@kafka-broker-0.kafka-bootstrap.kafka.svc.cluster.local:9093,1@kafka-broker-1.kafka-bootstrap.kafka.svc.cluster.local:9093,2@kafka-broker-2.kafka-bootstrap.kafka.svc.cluster.local:9093"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+              value: "3"
+            - name: KAFKA_MIN_INSYNC_REPLICAS
+              value: "2"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "3"
+            - name: KAFKA_LOG_DIRS
+              value: "/kafka/data"
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xmx1G -Xms1G"
+          # Initial cluster ID generation (run once, then persist)
+          command:
+            - "sh"
+            - "-c"
+            - |
+              # Generate cluster ID if not already present
+              if [ ! -f /kafka/data/meta.properties ]; then
+                /opt/kafka/bin/kafka-storage.sh random-uuid > /tmp/cluster-id
+                /opt/kafka/bin/kafka-storage.sh format -t $(cat /tmp/cluster-id) -c /opt/kafka/config/kraft/server.properties
+              fi
+              # Start Kafka
+              /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "4Gi"
+              cpu: "2"
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /kafka/data
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 60
+            periodSeconds: 20
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "standard"  # Replace with your cluster's StorageClass
+        resources:
+          requests:
+            storage: 50Gi  # Adjust based on throughput
+
+---
+
+# Optional: ConfigMap for metrics (for Prometheus integration)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-metrics
+  namespace: roi-project-planner-dev
+data:
+  jmx-exporter-config.yaml: |
+    rules:
+      - pattern: "kafka.server<type=BrokerTopicMetrics, name=(.*)>(.*)"
+        name: "kafka_broker_$1_$2"
+        labels:
+          broker: "$KAFKA_NODE_ID"

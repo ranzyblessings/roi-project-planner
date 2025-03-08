@@ -147,6 +147,10 @@ kubectl apply -f kubernetes/redis-secrets.yaml
 # 3. Deploy the Redis cluster:
 kubectl apply -f kubernetes/redis-deployment.yaml
 
+# Deploy Kafka Cluster and Its Secret
+
+kubectl apply -f kubernetes/kafka-statefulset.yaml
+
 ```
 
 ### AWS EKS Deployment
