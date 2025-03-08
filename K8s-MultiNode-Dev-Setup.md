@@ -169,13 +169,14 @@ kubectl get nodes
 
 ```bash
 multipass shell node1
-microk8s enable dns storage ingress
+microk8s enable dns storage ingress metrics-server
 exit
 ```
 
 - **dns**: Provides cluster-wide DNS resolution.
 - **storage**: Enables persistent storage with a default storage class.
 - **ingress**: Allows external access to services via an Ingress controller.
+- **metrics-server**: Provides resource usage metrics for HPA.
 
 ## Cleanup (Optional)
 

@@ -100,21 +100,40 @@ For local development and testing, you can set up a **multi-node Kubernetes** cl
 configure your environment.
 
 ```bash
-# Create namespace
-kubectl apply -f kubernetes/namespace.yaml 
+# Deploy Kubernetes Resources for Cassandra, Redis, and Kafka Clusters
 
-# Create MicroK8s storage (use preferred storage for non-MicroK8s setups)
-kubectl apply -f kubernetes/microks-storage.yaml
+# 1. Create the namespace
+kubectl apply -f kubernetes/namespace.yaml
 
-# Deploy 3 Apache Cassandra database nodes in a multi-node cluster
+# 2. Configure MicroK8s storage (replace with preferred storage class for non-MicroK8s environments)
+kubectl apply -f kubernetes/microk8s-storage.yaml
+
+# Deploy Cassandra Cluster and Its Secret
+
+# 1. Generate Cassandra credentials (example):
+echo -n "admin" | base64              # Outputs: YWRtaW4=
+echo -n "adminSecureSecret" | base64  # Outputs: YWRtaW5TZWN1cmVTZWNyZXQ=
+
+# 2. Create and apply cassandra-secrets.yaml:
+echo "apiVersion: v1
+kind: Secret
+metadata:
+  name: cassandra-secrets
+  namespace: roi-project-planner-dev
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: YWRtaW5TZWN1cmVTZWNyZXQ=" > kubernetes/cassandra-secrets.yaml
+kubectl apply -f kubernetes/cassandra-secrets.yaml
+
+# 3. Deploy the Cassandra cluster:
 kubectl apply -f kubernetes/cassandra-statefulset.yaml
 
-# Deploy Redis and Its Secret
+# Deploy Redis Cluster and Its Secret
+# 1. Generate the Redis password (example):
+echo -n "secret" | base64             # Outputs: c2VjcmV0
 
-# First, generate the Redis password. For example:
-echo -n "secret" | base64
-
-# Second, create and deploy redis-secrets.yaml:
+# 2. Create and apply redis-secrets.yaml:
 echo "apiVersion: v1
 kind: Secret
 metadata:
@@ -125,7 +144,7 @@ data:
   password: c2VjcmV0" > kubernetes/redis-secrets.yaml
 kubectl apply -f kubernetes/redis-secrets.yaml
 
-# Finally, deploy the Redis database:
+# 3. Deploy the Redis cluster:
 kubectl apply -f kubernetes/redis-deployment.yaml
 
 ```

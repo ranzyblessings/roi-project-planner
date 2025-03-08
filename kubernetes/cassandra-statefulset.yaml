@@ -1,3 +1,6 @@
+# Cassandra uses a StatefulSet to provide stable identities and persistent storage, enabling a
+# multi-node cluster with 3 replicas for production-grade scalability and fault tolerance.
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -51,6 +54,16 @@ spec:
               value: "DC1"
             - name: CASSANDRA_RACK
               value: "Rack1"
+            - name: CASSANDRA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secrets
+                  key: username
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secrets
+                  key: password
           volumeMounts:
             - name: cassandra-data
               mountPath: /var/lib/cassandra
