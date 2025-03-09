@@ -95,7 +95,7 @@ Amazon S3 for long-term retention and easy access.
 
 ### Local Deployment
 
-For local development and testing, you can set up a **multi-node Kubernetes** cluster using **Multipass** and
+For local development and testing, you can set up a **multi-node Kubernetes cluster** using **Multipass** and
 **MicroK8s**. Follow the detailed instructions in [K8s-MultiNode-Dev-Setup.md](./K8s-MultiNode-Dev-Setup.md) to
 configure your environment.
 
