@@ -139,8 +139,8 @@ microk8s config > ~/kubeconfig
 exit
 
 # On your local machine
-multipass transfer node1:/home/ubuntu/kubeconfig microk8s-kubeconfig
-mv microk8s-kubeconfig .kube/
+multipass transfer node1:/home/ubuntu/kubeconfig config
+mv config .kube/
 ls -la .kube
 ```
 
@@ -152,7 +152,7 @@ Update the cluster server IP to the node1 IP address:
 multipass list
 ```
 
-Copy the IP of `node1` (e.g., `10.97.131.27`) and edit `~/.kube/microk8s-kubeconfig` to update the server field:
+Copy the IP of `node1` (e.g., `10.97.131.27`) and edit `~/.kube/config` to update the server field:
 
 ```yaml
 server: https://10.97.131.27:16443
@@ -161,7 +161,7 @@ server: https://10.97.131.27:16443
 Then test access:
 
 ```bash
-export KUBECONFIG=~/.kube/microk8s-kubeconfig
+export KUBECONFIG=~/.kube/config
 kubectl get nodes
 ```
 
