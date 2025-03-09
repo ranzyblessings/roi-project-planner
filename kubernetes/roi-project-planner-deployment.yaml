@@ -141,14 +141,14 @@ spec:
               cpu: "1"
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 20
