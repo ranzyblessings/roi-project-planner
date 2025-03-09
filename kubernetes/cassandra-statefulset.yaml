@@ -16,7 +16,7 @@ spec:
       labels:
         app: cassandra
     spec:
-      # Anti-affinity to spread Cassandra pods across nodes for HA
+      # Anti-affinity to spread brokers across nodes
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -24,7 +24,7 @@ spec:
                 matchExpressions:
                   - key: app
                     operator: In
-                    values: ["cassandra"]
+                    values: [ "cassandra" ]
               topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 1800
       containers:
@@ -47,7 +47,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "nodetool drain"]
+                command: [ "/bin/sh", "-c", "nodetool drain" ]
           env:
             - name: MAX_HEAP_SIZE
               value: "2048M"
@@ -88,7 +88,7 @@ spec:
     - metadata:
         name: cassandra-data
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
             storage: 50Gi

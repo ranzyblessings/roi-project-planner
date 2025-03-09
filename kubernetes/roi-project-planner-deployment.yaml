@@ -1,0 +1,195 @@
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: roi-project-planner-config
+  namespace: roi-project-planner-dev
+data:
+  application-dev.yml: |
+    spring:
+      application:
+        name: roi-project-planner
+      cloud:
+        stream:
+          kafka:
+            binder:
+              brokers: kafka-bootstrap.roi-project-planner-dev.svc.cluster.local:9092
+              configuration:
+                sasl.mechanism: PLAIN
+                security.protocol: SASL_PLAINTEXT
+                sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
+      data:
+        redis:
+          host: redis.roi-project-planner-dev.svc.cluster.local
+          port: 6379
+          password: ${REDIS_PASSWORD}
+        cassandra:
+          contact-points: cassandra.roi-project-planner-dev.svc.cluster.local
+          port: 9042
+          local-datacenter: DC1
+          username: ${CASSANDRA_USERNAME}
+          password: ${CASSANDRA_PASSWORD}
+    management:
+      tracing:
+        exporter:
+          zipkin:
+            endpoint: http://zipkin.roi-project-planner-dev.svc.cluster.local:9411/api/v2/spans
+    logging:
+      file:
+        path: /var/log/app
+        name: application.log
+
+---
+
+# Service for roi-project-planner application
+apiVersion: v1
+kind: Service
+metadata:
+  name: roi-project-planner-service
+  namespace: roi-project-planner-dev
+  labels:
+    app: roi-project-planner
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: roi-project-planner
+
+---
+
+# Deployment for roi-project-planner application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roi-project-planner
+  namespace: roi-project-planner-dev
+  labels:
+    app: roi-project-planner
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: roi-project-planner
+  template:
+    metadata:
+      labels:
+        app: roi-project-planner
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: [ "roi-project-planner" ]
+              topologyKey: "kubernetes.io/hostname"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: roi-project-planner
+          image: ranzyblessingsdocker/roi-project-planner:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            - name: JAVA_OPTS
+              value: "-Xmx512m -Xms256m"
+            - name: KAFKA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: roi-project-planner-secrets
+                  key: kafka-username
+            - name: KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: roi-project-planner-secrets
+                  key: kafka-password
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: roi-project-planner-secrets
+                  key: redis-password
+            - name: CASSANDRA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: roi-project-planner-secrets
+                  key: cassandra-username
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: roi-project-planner-secrets
+                  key: cassandra-password
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "0.5"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+            - name: log-storage
+              mountPath: /var/log/app
+      volumes:
+        - name: config-volume
+          configMap:
+            name: roi-project-planner-config
+        - name: log-storage
+          emptyDir: { }
+
+---
+
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: roi-project-planner-hpa
+  namespace: roi-project-planner-dev
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: roi-project-planner
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

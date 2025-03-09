@@ -131,7 +131,7 @@ kubectl apply -f kubernetes/cassandra-statefulset.yaml
 
 # Deploy Redis Cluster and Its Secret
 # 1. Generate the Redis password (example):
-echo -n "secret" | base64             # Outputs: c2VjcmV0
+echo -n "adminSecureSecret" | base64  # Outputs: YWRtaW5TZWN1cmVTZWNyZXQ=
 
 # 2. Create and apply redis-secrets.yaml:
 echo "apiVersion: v1
@@ -148,8 +148,29 @@ kubectl apply -f kubernetes/redis-secrets.yaml
 kubectl apply -f kubernetes/redis-deployment.yaml
 
 # Deploy Kafka Cluster and Its Secret
-
 kubectl apply -f kubernetes/kafka-statefulset.yaml
+
+# Deploy the roi-project-planner and its secrets
+
+# 1. Generate roi-project-planner database connection details:
+
+echo "apiVersion: v1
+kind: Secret
+metadata:
+  name: roi-project-planner-secrets
+  namespace: roi-project-planner-dev
+type: Opaque
+data:
+  cassandra-username: YWRtaW4=
+  cassandra-password: YWRtaW5TZWN1cmVTZWNyZXQ=
+  redis-password: YWRtaW5TZWN1cmVTZWNyZXQ=
+  kafka-username: YWRtaW4=
+  kafka-password: YWRtaW5TZWN1cmVTZWNyZXQ=" > kubernetes/roi-project-planner-secrets.yaml
+kubectl apply -f kubernetes/roi-project-planner-secrets.yaml 
+
+# 2. # Deploy the roi-project-planner
+
+kubectl apply -f kubernetes/roi-project-planner-deployment.yaml
 
 ```
 
