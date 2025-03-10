@@ -2,11 +2,10 @@
 
 ## Overview
 
-**ROI Project Planner** is a tool designed to optimize capital allocation by selecting up to _k_ distinct projects from
-a pool
-of available options. It showcases a broad range of skills, including expertise in advanced data structures, algorithms,
-SOLID principles, and software engineering best practices. Additionally, it incorporates modern cloud-native patterns
-such as reactive programming, fault tolerance, and event-driven architectures.
+**ROI Project Planner** is a tool designed to optimize capital allocation by selecting the most impactful projects from
+a pool of options. The project highlights expertise in advanced data structures, algorithms, SOLID principles, and
+software engineering best practices. It also integrates modern cloud-native patterns, including reactive programming,
+fault tolerance, and event-driven architectures, showcasing a holistic approach to scalable and resilient system design.
 
 [![Build and Test Application](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/build-and-test.yaml)
 [![Deploy Docker Image](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/deploy-docker-image.yaml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner/actions/workflows/deploy-docker-image.yaml)
@@ -176,7 +175,8 @@ kubectl apply -f kubernetes/roi-project-planner-deployment.yaml
 
 ### AWS EKS Deployment
 
-_(Terraform project link will be available soon.)_
+_AWS EKS deployment via Terraform is coming soon. The current setup is optimized for Kubernetes deployments, ensuring
+seamless scalability and production readiness._
 
 ---
 
